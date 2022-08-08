@@ -8,6 +8,8 @@ Only means of transferring data to and from files right now is through the `Memo
 
 You can specify 1-32KB of RAM.
 
+To change between the `RUN` and `RESET` state, just press `RETURN`.  If you want to access the operating system, hold the `C` (mapped to `4` right now) key and press RETURN`.  That should allow you to use the operating system like the original COSMAC VIP.
+
 ## Currently Supported Renderers
 - OpenGL 2.1 (Should run on most hardware, though it does take advantage of some extensions.)
 - OpenGL ES 2.0 (This allows it to run on various systems such as nearly any Raspberry Pi.)
