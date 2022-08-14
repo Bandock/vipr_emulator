@@ -12,7 +12,8 @@ To change between the `RUN` and `RESET` state, just press `RETURN`.  If you want
 
 ## Key Bindings
 Original COSMAC VIP Hex Keyboard Layout:
-|---|---|---|---|
+|0|1|2|3|
+|-|-|-|-|
 |`1`|`2`|`3`|`C`|
 |`4`|`5`|`6`|`D`|
 |`7`|`8`|`9`|`E`|
