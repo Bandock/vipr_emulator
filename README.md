@@ -10,26 +10,12 @@ You can specify 1-32KB of RAM.
 
 To change between the `RUN` and `RESET` state, just press `RETURN`.  If you want to access the operating system, hold the `C` (mapped to `4` right now) key and press `RETURN`.  That should allow you to use the operating system like the original COSMAC VIP.
 
-Here are the current keyboard bindings that this emulator uses when the machine is run:
-
-|Hex Key|Key Binding|
-|-------|-----------|
-|`0`|`X`|
-|`1`|`1`|
-|`2`|`2`|
-|`3`|`3`|
-|`4`|`Q`|
-|`5`|`W`|
-|`6`|`E`|
-|`7`|`A`|
-|`8`|`S`|
-|`9`|`D`|
-|`A`|`Z`|
-|`B`|`C`|
-|`C`|`4`|
-|`D`|`R`|
-|`E`|`F`|
-|`F`|`V`|
+## Key Bindings
+Original COSMAC VIP Hex Keyboard Layout:
+|`1`|`2`|`3`|`C`|
+|`4`|`5`|`6`|`D`|
+|`7`|`8`|`9`|`E`|
+|`A`|`0`|`B`|`F`|
 
 ## Currently Supported Renderers
 - OpenGL 2.1 (Should run on most hardware, though it does take advantage of some extensions.)
