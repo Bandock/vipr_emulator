@@ -19,6 +19,14 @@ Original COSMAC VIP Hex Keyboard Layout:
 |`7`|`8`|`9`|`E`|
 |`A`|`0`|`B`|`F`|
 
+Current Key Bindings:
+|0|1|2|3|
+|-|-|-|-|
+|`1`|`2`|`3`|`4`|
+|`Q`|`W`|`E`|`R`|
+|`A`|`S`|`D`|`F`|
+|`Z`|`X`|`C`|`V`|
+
 ## Currently Supported Renderers
 - OpenGL 2.1 (Should run on most hardware, though it does take advantage of some extensions.)
 - OpenGL 3.0 (Should run on DX10 class hardware at least.  It too also takes advantage of some extensions.)
