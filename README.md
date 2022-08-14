@@ -10,8 +10,30 @@ You can specify 1-32KB of RAM.
 
 To change between the `RUN` and `RESET` state, just press `RETURN`.  If you want to access the operating system, hold the `C` (mapped to `4` right now) key and press `RETURN`.  That should allow you to use the operating system like the original COSMAC VIP.
 
+Here are the current keyboard bindings that this emulator uses when the machine is run:
+
+|Hex Key|Key Binding|
+|-------|-----------|
+|`0`|`X`|
+|`1`|`1`|
+|`2`|`2`|
+|`3`|`3`|
+|`4`|`Q`|
+|`5`|`W`|
+|`6`|`E`|
+|`7`|`A`|
+|`8`|`S`|
+|`9`|`D`|
+|`A`|`Z`|
+|`B`|`C`|
+|`C`|`4`|
+|`D`|`R`|
+|`E`|`F`|
+|`F`|`V`|
+
 ## Currently Supported Renderers
 - OpenGL 2.1 (Should run on most hardware, though it does take advantage of some extensions.)
+- OpenGL 3.0 (Should run on DX10 class hardware at least.  It too also takes advantage of some extensions.)
 - OpenGL ES 2.0 (This allows it to run on various systems such as nearly any Raspberry Pi.)
 - OpenGL ES 3.0 (This allows it to run on more modern embedded devices and even some systems like the Raspberry Pi 4.  First renderer that was built as the development machine was a Raspberry Pi 4.)
 
@@ -20,5 +42,5 @@ To change between the `RUN` and `RESET` state, just press `RETURN`.  If you want
 - [fmt](https://github.com/fmt)
 - [libmsbtfont](https://github.com/Bandock/libmsbtfont) (Requires at least 0.2.0, latest release recommended)
 - [SDL2](https://www.libsdl.org/download-2.0.php) (Latest stable development versions should work fine)
-- [GLEW](http://glew.sourceforget.net) (If you're compiling with OpenGL 2.1 and soon OpenGL 3.0 renderer support)
+- [GLEW](http://glew.sourceforget.net) (If you're compiling with OpenGL 2.1 and OpenGL 3.0 renderer support)
 - C++ Compiler with C++20 Support

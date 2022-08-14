@@ -18,6 +18,11 @@ VIPR_Emulator::Application::Application() : current_hex_key(0x0), key_down_callb
 	flags |= SDL_WINDOW_OPENGL;
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+#elif defined(RENDERER_OPENGL30)
+	flags |= SDL_WINDOW_OPENGL;
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
 #elif defined(RENDERER_OPENGLES2)
 	flags |= SDL_WINDOW_OPENGL;
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);

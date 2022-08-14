@@ -104,6 +104,11 @@ bool VIPR_Emulator::Renderer::Setup(SDL_Window *window)
 	{
 		CurrentWindow = window;
 		MainContext = SDL_GL_CreateContext(CurrentWindow);
+		if (MainContext == nullptr)
+		{
+			fmt::print("Unable to create OpenGL 2.1 context.\n");
+			return false;
+		}
 		GLenum err = glewInit();
 		if (err != GLEW_OK)
 		{

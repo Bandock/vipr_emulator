@@ -6,7 +6,7 @@
 #include <fstream>
 #include <msbtfont/msbtfont.h>
 
-VIPR_Emulator::Renderer::Renderer() : CurrentWindow(nullptr), MainContext(nullptr), PrimaryVertexShaderId(0), SecondaryFramebufferFragmentShaderId(0), FontFragmentShaderId(0), MachineFragmentShaderId(0), SecondaryFramebufferProgramId(0), FontProgramId(0), MachineProgramId(0), CurrentProgramId(0), VBOId(0), IBOId(0), SecondaryFramebufferTextureId(0), MenuFontTextureId(0), DisplayTextureId(0), CurrentTextureId(0), SFBOId(0), CurrentFBOId(0), PosAttribId(0), TexAttribId(0), FontColorUniformId(0), FontFlagInvertUniformId(0), CurrentDisplayType(DisplayType::Emulator), font_ctrl { FontColorData { 0.0f, 0.0f, 0.0f, 1.0f }, 0x00 }
+VIPR_Emulator::Renderer::Renderer() : CurrentWindow(nullptr), MainContext(nullptr), PrimaryVertexShaderId(0), SecondaryFramebufferFragmentShaderId(0), FontFragmentShaderId(0), MachineFragmentShaderId(0), SecondaryFramebufferProgramId(0), FontProgramId(0), MachineProgramId(0), CurrentProgramId(0), VAOId(0), VBOId(0), IBOId(0), FontControlUBOId(0), SecondaryFramebufferTextureId(0), MenuFontTextureId(0), DisplayTextureId(0), CurrentTextureId(0), SFBOId(0), CurrentFBOId(0), CurrentDisplayType(DisplayType::Emulator), font_ctrl { FontColorData { 0.0f, 0.0f, 0.0f, 1.0f }, 0x00 }
 {
 	vertices = {
 		Vertex { { -1.0f, 1.0f }, { 0.0f, 1.0f } },
@@ -24,7 +24,7 @@ VIPR_Emulator::Renderer::~Renderer()
 		glUseProgram(0);
 		if (CurrentFBOId != 0)
 		{
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 		}
 		if (SFBOId != 0)
 		{
@@ -34,7 +34,8 @@ VIPR_Emulator::Renderer::~Renderer()
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glDisableVertexAttribArray(0);
-		glDisableVertexAttribArray(0);
+		glDisableVertexAttribArray(1);
+		glBindVertexArray(0);
 		if (DisplayTextureId != 0)
 		{
 			glDeleteTextures(1, &DisplayTextureId);
@@ -47,6 +48,10 @@ VIPR_Emulator::Renderer::~Renderer()
 		{
 			glDeleteTextures(1, &SecondaryFramebufferTextureId);
 		}
+		if (FontControlUBOId != 0)
+		{
+			glDeleteBuffers(1, &FontControlUBOId);
+		}
 		if (IBOId != 0)
 		{
 			glDeleteBuffers(1, &IBOId);
@@ -54,6 +59,10 @@ VIPR_Emulator::Renderer::~Renderer()
 		if (VBOId != 0)
 		{
 			glDeleteBuffers(1, &VBOId);
+		}
+		if (VAOId != 0)
+		{
+			glDeleteVertexArrays(1, &VAOId);
 		}
 		if (MachineProgramId != 0)
 		{
@@ -101,7 +110,18 @@ bool VIPR_Emulator::Renderer::Setup(SDL_Window *window)
 		MainContext = SDL_GL_CreateContext(CurrentWindow);
 		if (MainContext == nullptr)
 		{
-			fmt::print("Unable to create OpenGL ES 2.0 context.\n");
+			fmt::print("Unable to create OpenGL 3.0 context.\n");
+			return false;
+		}
+		GLenum err = glewInit();
+		if (err != GLEW_OK)
+		{
+			fmt::print("GLEW Initialization failed.\n");
+			return false;
+		}
+		if (!GLEW_ARB_texture_storage)
+		{
+			fmt::print("Texture storage functions are not supported on this platform.\n");
 			return false;
 		}
 		if (!CompileShader(PrimaryVertexShaderId, GL_VERTEX_SHADER, Shader::PrimaryVertexShader))
@@ -139,18 +159,19 @@ bool VIPR_Emulator::Renderer::Setup(SDL_Window *window)
 		{
 			return false;
 		}
-		PosAttribId = glGetAttribLocation(SecondaryFramebufferProgramId, "pos");
-		TexAttribId = glGetAttribLocation(SecondaryFramebufferProgramId, "tex");
-		FontColorUniformId = glGetUniformLocation(FontProgramId, "FontColor");
-		FontFlagInvertUniformId = glGetUniformLocation(FontProgramId, "FontFlag_Invert");
+		glGenVertexArrays(1, &VAOId);
 		glGenBuffers(1, &VBOId);
 		glGenBuffers(1, &IBOId);
+		glGenBuffers(1, &FontControlUBOId);
+		glBindVertexArray(VAOId);
 		glBindBuffer(GL_ARRAY_BUFFER, VBOId);
 		glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_DYNAMIC_DRAW);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBOId);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(uint8_t), indices.data(), GL_STATIC_DRAW);
-		glVertexAttribPointer(PosAttribId, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void *>(0));
-		glVertexAttribPointer(TexAttribId, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void *>(sizeof(float) * 2));
+		glBindBufferRange(GL_UNIFORM_BUFFER, 0, FontControlUBOId, 0, sizeof(FontControlData));
+		glBufferData(GL_UNIFORM_BUFFER, sizeof(FontControlData), &font_ctrl, GL_STATIC_DRAW);
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void *>(0));
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void *>(sizeof(float) * 2));
 		glEnableVertexAttribArray(0);
 		glEnableVertexAttribArray(1);
 		glGenTextures(1, &SecondaryFramebufferTextureId);
@@ -160,15 +181,16 @@ bool VIPR_Emulator::Renderer::Setup(SDL_Window *window)
 		glBindTexture(GL_TEXTURE_2D, SecondaryFramebufferTextureId);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1280, 640, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+		glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, 1280, 640);
 		glBindTexture(GL_TEXTURE_2D, MenuFontTextureId);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexStorage2D(GL_TEXTURE_2D, 1, GL_R8UI, 128, 48);
 		{
 			std::ifstream vipr_font_file("vipr_menu_font.mbft", std::ios::binary);
 			if (vipr_font_file.fail())
 			{
-				fmt::print("Unable to load 'vipr_menu_font.mbft.'.\n");
+				fmt::print("Unable to load 'vipr_menu_font.mbft'.\n");
 				return false;
 			}
 			msbtfont_header header;
@@ -181,24 +203,24 @@ bool VIPR_Emulator::Renderer::Setup(SDL_Window *window)
 			surface_desc.rect.y = 0;
 			surface_desc.rect.width = 128;
 			surface_desc.rect.height = 48;
-			surface_desc.format = MSBTFONT_SURFACE_FORMAT_32_8;
+			surface_desc.format = MSBTFONT_SURFACE_FORMAT_8;
 			surface_desc.origin = MSBTFONT_SURFACE_ORIGIN_LOWERLEFT;
 			size_t surface_memory_req = msbtfont_get_surface_memory_requirement(&surface_desc);
 			std::vector<uint8_t> font_surface(surface_memory_req);
 			msbtfont_copy_to_surface(&header, &filedata, 16, 0, &surface_desc, font_surface.data());
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 128, 48, 0, GL_RGBA, GL_UNSIGNED_BYTE, font_surface.data());
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 128, 48, GL_RED_INTEGER, GL_UNSIGNED_BYTE, font_surface.data());
 			msbtfont_delete_filedata(&filedata);
 		}
 		glBindTexture(GL_TEXTURE_2D, DisplayTextureId);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 64, 128, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+		glTexStorage2D(GL_TEXTURE_2D, 1, GL_R8UI, 64, 128);
 		glBindTexture(GL_TEXTURE_2D, SecondaryFramebufferTextureId);
 		CurrentTextureId = SecondaryFramebufferTextureId;
 		glGenFramebuffers(1, &SFBOId);
-		glBindFramebuffer(GL_FRAMEBUFFER, SFBOId);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, SecondaryFramebufferTextureId, 0);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, SFBOId);
+		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, SecondaryFramebufferTextureId, 0);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glViewport(0, 0, 1280, 640);
 		glUseProgram(SecondaryFramebufferProgramId);
@@ -214,7 +236,7 @@ void VIPR_Emulator::Renderer::Render()
 	if (CurrentFBOId != 0)
 	{
 		CurrentFBOId = 0;
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	}
 	switch (CurrentDisplayType)
 	{
@@ -227,7 +249,7 @@ void VIPR_Emulator::Renderer::Render()
 			}
 			if (CurrentTextureId != SecondaryFramebufferTextureId)
 			{
-				CurrentTextureId = SecondaryFramebufferTextureId;
+				CurrentProgramId = SecondaryFramebufferTextureId;
 				glBindTexture(GL_TEXTURE_2D, SecondaryFramebufferTextureId);
 			}
 			break;
@@ -257,7 +279,7 @@ void VIPR_Emulator::Renderer::ClearSecondaryFramebuffer()
 	if (CurrentFBOId != SFBOId)
 	{
 		CurrentFBOId = SFBOId;
-		glBindFramebuffer(GL_FRAMEBUFFER, SFBOId);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, SFBOId);
 	}
 	glClear(GL_COLOR_BUFFER_BIT);
 }
@@ -269,16 +291,9 @@ void VIPR_Emulator::Renderer::ClearDisplay()
 		CurrentTextureId = DisplayTextureId;
 		glBindTexture(GL_TEXTURE_2D, DisplayTextureId);
 	}
-	struct alignas(4) DisplayColorData
-	{
-		uint8_t r;
-	};
-	std::array<DisplayColorData, 64 * 128> buffer;
-	for (size_t i = 0; i < buffer.size(); ++i)
-	{
-		buffer[i].r = 0;
-	}
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 64, 128, GL_RGBA, GL_UNSIGNED_BYTE, buffer.data());
+	std::array<uint8_t, 64 * 128> buffer;
+	memset(buffer.data(), 0, buffer.size());
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 64, 128, GL_RED_INTEGER, GL_UNSIGNED_BYTE, buffer.data());
 }
 
 void VIPR_Emulator::Renderer::SetDisplayType(DisplayType type)
@@ -297,6 +312,8 @@ void VIPR_Emulator::Renderer::SetFontColor(uint8_t r, uint8_t g, uint8_t b)
 	if (font_ctrl.FontColor.r != color.r || font_ctrl.FontColor.g != color.g || font_ctrl.FontColor.b != color.b)
 	{
 		font_ctrl.FontColor = color;
+		glBindBuffer(GL_UNIFORM_BUFFER, FontControlUBOId);
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(font_ctrl.FontColor), &font_ctrl.FontColor);
 	}
 }
 
@@ -305,6 +322,9 @@ void VIPR_Emulator::Renderer::SetFontFlags(uint32_t flags)
 	if (font_ctrl.FontFlags != flags)
 	{
 		font_ctrl.FontFlags = flags;
+		glBindBuffer(GL_UNIFORM_BUFFER, FontControlUBOId);
+		constexpr size_t offset = sizeof(font_ctrl.FontColor);
+		glBufferSubData(GL_UNIFORM_BUFFER, offset, sizeof(font_ctrl.FontFlags), &font_ctrl.FontFlags);
 	}
 }
 
@@ -318,15 +338,13 @@ void VIPR_Emulator::Renderer::DrawChar(char character, uint16_t x, uint16_t y)
 	if (CurrentFBOId != SFBOId)
 	{
 		CurrentFBOId = SFBOId;
-		glBindFramebuffer(GL_FRAMEBUFFER, SFBOId);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, SFBOId);
 	}
 	if (CurrentProgramId != FontProgramId)
 	{
 		CurrentProgramId = FontProgramId;
 		glUseProgram(FontProgramId);
 	}
-	glUniform4fv(FontColorUniformId, 1, reinterpret_cast<const float *>(&font_ctrl.FontColor));
-	glUniform1i(FontFlagInvertUniformId, font_ctrl.FontFlags & 0x01);
 	std::array<Vertex, 4> original_vertices = vertices;
 	float left_x = (x / 320.0f) - 1.0f;
 	float right_x = ((x + 8) / 320.0f) - 1.0f;
@@ -335,7 +353,7 @@ void VIPR_Emulator::Renderer::DrawChar(char character, uint16_t x, uint16_t y)
 	char current_character = character - 32;
 	float tex_left_x = (current_character % 16 * 8) / 128.0f;
 	float tex_right_x = ((current_character % 16 * 8) + 8) / 128.0f;
-	float tex_up_y = 1.0f - ((current_character / 16 * 8) / 48.0f);
+	float tex_up_y = ((current_character / 16 * 8) / 48.0f);
 	float tex_down_y = 1.0f - (((current_character / 16 * 8) + 8) / 48.0f);
 	vertices = {
 		Vertex { { left_x, up_y }, { tex_left_x, tex_up_y } },
@@ -359,15 +377,13 @@ void VIPR_Emulator::Renderer::DrawText(std::string text, uint16_t x, uint16_t y)
 	if (CurrentFBOId != SFBOId)
 	{
 		CurrentFBOId = SFBOId;
-		glBindFramebuffer(GL_FRAMEBUFFER, SFBOId);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, SFBOId);
 	}
 	if (CurrentProgramId != FontProgramId)
 	{
 		CurrentProgramId = FontProgramId;
 		glUseProgram(FontProgramId);
 	}
-	glUniform4fv(FontColorUniformId, 1, reinterpret_cast<const float *>(&font_ctrl.FontColor));
-	glUniform1i(FontFlagInvertUniformId, font_ctrl.FontFlags & 0x01);
 	std::array<Vertex, 4> original_vertices = vertices;
 	float up_y = 1.0f - (y / 160.0f);
 	float down_y = 1.0f - ((y + 8) / 160.0f);
@@ -404,20 +420,16 @@ void VIPR_Emulator::Renderer::DrawByte(uint8_t data, uint8_t line, uint8_t offse
 		CurrentTextureId = DisplayTextureId;
 		glBindTexture(GL_TEXTURE_2D, DisplayTextureId);
 	}
-	struct alignas(4) DrawColorData
-	{
-		uint8_t r;
-	};
-	std::array<DrawColorData, 8> buffer;
+	std::array<uint8_t, 8> buffer;
 	uint8_t flag = 0x80;
 	uint8_t b_offset = 0;
 	for (uint8_t i = 0; i < buffer.size(); ++i)
 	{
-		buffer[i].r = ((data & flag) >> (7 - b_offset));
+		buffer[i] = ((data & flag) >> (7 - b_offset));
 		flag >>= 1;
 		++b_offset;
 	}
-	glTexSubImage2D(GL_TEXTURE_2D, 0, offset * 8, 127 - line, 8, 1, GL_RGBA, GL_UNSIGNED_BYTE, buffer.data());
+	glTexSubImage2D(GL_TEXTURE_2D, 0, offset * 8, 127 - line, 8, 1, GL_RED_INTEGER, GL_UNSIGNED_BYTE, buffer.data());
 }
 
 bool VIPR_Emulator::Renderer::CompileShader(GLuint &shader, GLuint shader_type, const char *shader_code)
@@ -437,7 +449,6 @@ bool VIPR_Emulator::Renderer::CompileShader(GLuint &shader, GLuint shader_type, 
 		std::vector<char> info_log(info_log_len);
 		glGetShaderInfoLog(shader, info_log_len, nullptr, info_log.data());
 		fmt::print("{}\n", info_log.data());
-		return false;
 	}
 	return true;
 }
@@ -452,7 +463,6 @@ bool VIPR_Emulator::Renderer::LinkProgram(GLuint &program, std::vector<GLuint> s
 	{
 		glDeleteProgram(program);
 	}
-	program = glCreateProgram();
 	for (auto &i : shader_list)
 	{
 		glAttachShader(program, i);
