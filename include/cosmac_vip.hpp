@@ -68,6 +68,11 @@ namespace VIPR_Emulator
 				CPU.Initialize();
 			}
 
+			inline void InstallROM(std::vector<uint8_t> &&ROM)
+			{
+				this->ROM = ROM;
+			}
+
 			inline size_t GetRAM() const
 			{
 				return RAM.size();
@@ -122,7 +127,7 @@ namespace VIPR_Emulator
 			bool *hex_key_press_signal;
 			bool fail;
 			std::vector<uint8_t> RAM;
-			std::array<uint8_t, 512> ROM;
+			std::vector<uint8_t> ROM;
 			std::array<MemoryMapData, 2> MemoryMap =
 			{
 				MemoryMapData { 0x0000, 0x7FFF, MemoryMapType::RAM }, // RAM

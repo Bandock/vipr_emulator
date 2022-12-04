@@ -110,7 +110,7 @@ bool VIPR_Emulator::Renderer::Setup(SDL_Window *window)
 		MainContext = SDL_GL_CreateContext(CurrentWindow);
 		if (MainContext == nullptr)
 		{
-			fmt::print("Unable to create OpenGL 3.0 context.\n");
+			fmt::print("{}\n", SDL_GetError());
 			return false;
 		}
 		GLenum err = glewInit();
@@ -249,7 +249,7 @@ void VIPR_Emulator::Renderer::Render()
 			}
 			if (CurrentTextureId != SecondaryFramebufferTextureId)
 			{
-				CurrentProgramId = SecondaryFramebufferTextureId;
+				CurrentTextureId = SecondaryFramebufferTextureId;
 				glBindTexture(GL_TEXTURE_2D, SecondaryFramebufferTextureId);
 			}
 			break;
@@ -353,7 +353,7 @@ void VIPR_Emulator::Renderer::DrawChar(char character, uint16_t x, uint16_t y)
 	char current_character = character - 32;
 	float tex_left_x = (current_character % 16 * 8) / 128.0f;
 	float tex_right_x = ((current_character % 16 * 8) + 8) / 128.0f;
-	float tex_up_y = ((current_character / 16 * 8) / 48.0f);
+	float tex_up_y = 1.0f - ((current_character / 16 * 8) / 48.0f);
 	float tex_down_y = 1.0f - (((current_character / 16 * 8) + 8) / 48.0f);
 	vertices = {
 		Vertex { { left_x, up_y }, { tex_left_x, tex_up_y } },
@@ -449,6 +449,7 @@ bool VIPR_Emulator::Renderer::CompileShader(GLuint &shader, GLuint shader_type, 
 		std::vector<char> info_log(info_log_len);
 		glGetShaderInfoLog(shader, info_log_len, nullptr, info_log.data());
 		fmt::print("{}\n", info_log.data());
+		return false;
 	}
 	return true;
 }
@@ -463,6 +464,7 @@ bool VIPR_Emulator::Renderer::LinkProgram(GLuint &program, std::vector<GLuint> s
 	{
 		glDeleteProgram(program);
 	}
+	program = glCreateProgram();
 	for (auto &i : shader_list)
 	{
 		glAttachShader(program, i);

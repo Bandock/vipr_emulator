@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(vipr_emulator VERSION 0.1 LANGUAGES CXX)
+project(vipr_emulator VERSION 0.2 LANGUAGES CXX)
 
 find_package(Threads REQUIRED)
 find_package(fmt REQUIRED)

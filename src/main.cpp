@@ -334,7 +334,10 @@ void VIPR_Emulator::Application::ConstructMenus()
 	MachineOptionsMenu.on_right = machine_options_right;
 	MachineOptionsMenu.on_activate = machine_options_activate;
 	MachineOptionsMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Text, GUI::Text { "Machine Options", 88, 0, GUI::ColorData { 0xC0, 0xC0, 0xC0 }, false } });
-	MachineOptionsMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Value, GUI::Value { "RAM (In KB)", "", 64, 50, main_menu_item_color, main_menu_item_select_color, GUI::ColorData { 0xFF, 0xFF, 0xFF }, GUI::ValueBaseType::Decimal, 2, 1, 32, 0, true, false, false, machine_options_ram_in_kb_input_complete } });
+	MachineOptionsMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Value, GUI::Value { "RAM (In KB)", "", 0, 50, main_menu_item_color, main_menu_item_select_color, GUI::ColorData { 0xFF, 0xFF, 0xFF }, GUI::ValueBaseType::Decimal, 2, 1, 32, 0, true, false, false, machine_options_ram_in_kb_input_complete } });
+	MachineOptionsMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Input, GUI::Input { "ROM File", "", "", 0, 60, main_menu_item_color, main_menu_item_select_color, GUI::ColorData { 0xFF, 0xFF, 0xFF }, 0, 32, 0, 0, false, false, false, machine_options_rom_file_input_complete } });
+	MachineOptionsMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Button, GUI::Button { "Load ROM", 0, 70, main_menu_item_color, main_menu_item_select_color, main_menu_item_disabled_color, false, true, false, nullptr } });
+	MachineOptionsMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Status, GUI::Status { "ROM Status", "None", 0, 130, main_menu_item_color, GUI::ColorData { 0x40, 0x40, 0x40 }, false } });
 	MachineOptionsMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Button, GUI::Button { "Return to Main Menu", 64, 180, main_menu_item_color, main_menu_item_select_color, main_menu_item_disabled_color, false, false, false, nullptr } });
 
 	MachineMemoryTransferMenu.x = 136;
@@ -1175,7 +1178,9 @@ void VIPR_Emulator::machine_options_up(VIPR_Emulator::GUI::Menu &obj, void *user
 {
 	Application *app = static_cast<Application *>(userdata);
 	GUI::Value *RAMInKB = std::get_if<GUI::Value>(&obj.element_list[1].element);
-	GUI::Button *ReturnToMainMenu = std::get_if<GUI::Button>(&obj.element_list[2].element);
+	GUI::Input *ROMFile = std::get_if<GUI::Input>(&obj.element_list[2].element);
+	GUI::Button *LoadROM = std::get_if<GUI::Button>(&obj.element_list[3].element);
+	GUI::Button *ReturnToMainMenu = std::get_if<GUI::Button>(&obj.element_list[5].element);
 	switch (obj.current_menu_item)
 	{
 		case 0:
@@ -1185,22 +1190,57 @@ void VIPR_Emulator::machine_options_up(VIPR_Emulator::GUI::Menu &obj, void *user
 		}
 		case 1:
 		{
+			ROMFile->select = false;
+			break;
+		}
+		case 2:
+		{
+			LoadROM->select = false;
+			break;
+		}
+		case 3:
+		{
 			ReturnToMainMenu->select = false;
 			break;
 		}
 	}
-	obj.current_menu_item = (obj.current_menu_item == 0) ? 1 : obj.current_menu_item - 1;
-	switch (obj.current_menu_item)
+	obj.current_menu_item = (obj.current_menu_item == 0) ? 3 : obj.current_menu_item - 1;
+	bool selected = false;
+	while (!selected)
 	{
-		case 0:
+		switch (obj.current_menu_item)
 		{
-			RAMInKB->select = true;
-			break;
-		}
-		case 1:
-		{
-			ReturnToMainMenu->select = true;
-			break;
+			case 0:
+			{
+				RAMInKB->select = true;
+				selected = true;
+				break;
+			}
+			case 1:
+			{
+				ROMFile->select = true;
+				selected = true;
+				break;
+			}
+			case 2:
+			{
+				if (!LoadROM->disabled)
+				{
+					LoadROM->select = true;
+					selected = true;
+				}
+				else
+				{
+					--obj.current_menu_item;
+				}
+				break;
+			}
+			case 3:
+			{
+				ReturnToMainMenu->select = true;
+				selected = true;
+				break;
+			}
 		}
 	}
 	app->DrawCurrentMenu();
@@ -1210,7 +1250,9 @@ void VIPR_Emulator::machine_options_down(VIPR_Emulator::GUI::Menu &obj, void *us
 {
 	Application *app = static_cast<Application *>(userdata);
 	GUI::Value *RAMInKB = std::get_if<GUI::Value>(&obj.element_list[1].element);
-	GUI::Button *ReturnToMainMenu = std::get_if<GUI::Button>(&obj.element_list[2].element);
+	GUI::Input *ROMFile = std::get_if<GUI::Input>(&obj.element_list[2].element);
+	GUI::Button *LoadROM = std::get_if<GUI::Button>(&obj.element_list[3].element);
+	GUI::Button *ReturnToMainMenu = std::get_if<GUI::Button>(&obj.element_list[5].element);
 	switch (obj.current_menu_item)
 	{
 		case 0:
@@ -1220,22 +1262,57 @@ void VIPR_Emulator::machine_options_down(VIPR_Emulator::GUI::Menu &obj, void *us
 		}
 		case 1:
 		{
+			ROMFile->select = false;
+			break;
+		}
+		case 2:
+		{
+			LoadROM->select = false;
+			break;
+		}
+		case 3:
+		{
 			ReturnToMainMenu->select = false;
 			break;
 		}
 	}
-	obj.current_menu_item = (obj.current_menu_item == 1) ? 0 : obj.current_menu_item + 1;
-	switch (obj.current_menu_item)
+	obj.current_menu_item = (obj.current_menu_item == 3) ? 0 : obj.current_menu_item + 1;
+	bool selected = false;
+	while (!selected)
 	{
-		case 0:
+		switch (obj.current_menu_item)
 		{
-			RAMInKB->select = true;
-			break;
-		}
-		case 1:
-		{
-			ReturnToMainMenu->select = true;
-			break;
+			case 0:
+			{
+				RAMInKB->select = true;
+				selected = true;
+				break;
+			}
+			case 1:
+			{
+				ROMFile->select = true;
+				selected = true;
+				break;
+			}
+			case 2:
+			{
+				if (!LoadROM->disabled)
+				{
+					LoadROM->select = true;
+					selected = true;
+				}
+				else
+				{
+					++obj.current_menu_item;
+				}
+				break;
+			}
+			case 3:
+			{
+				ReturnToMainMenu->select = true;
+				selected = true;
+				break;
+			}
 		}
 	}
 	app->DrawCurrentMenu();
@@ -1283,6 +1360,8 @@ void VIPR_Emulator::machine_options_activate(VIPR_Emulator::GUI::Menu &obj, void
 {
 	Application *app = static_cast<Application *>(userdata);
 	GUI::Value *RAMInKB = std::get_if<GUI::Value>(&obj.element_list[1].element);
+	GUI::Input *ROMFile = std::get_if<GUI::Input>(&obj.element_list[2].element);
+	GUI::Status *ROMStatus = std::get_if<GUI::Status>(&obj.element_list[4].element);
 	switch (obj.current_menu_item)
 	{
 		case 0:
@@ -1302,6 +1381,46 @@ void VIPR_Emulator::machine_options_activate(VIPR_Emulator::GUI::Menu &obj, void
 		}
 		case 1:
 		{
+			app->InputFocus = &obj.element_list[2];
+			ROMFile->focus = true;
+			ROMFile->input = ROMFile->stored_input;
+			ROMFile->cursor_pos = ROMFile->input.size();
+			if (ROMFile->input.size() >= ROMFile->max_display)
+			{
+				ROMFile->display_start = ROMFile->input.size() - ROMFile->max_display + 1;
+			}
+			app->SetOperationMode(OperationMode::Input);
+			break;
+		}
+		case 2:
+		{
+			std::vector<uint8_t> ROMFileData;
+			{
+				std::ifstream target_rom_file(ROMFile->stored_input, std::ios::binary | std::ios::ate);
+				if (target_rom_file.fail())
+				{
+					ROMStatus->status = "Failed";
+					ROMStatus->status_color = { 0xFF, 0x00, 0x00 };
+					break;
+				}
+				size_t rom_file_size = target_rom_file.tellg();
+				if (rom_file_size > 32768)
+				{
+					ROMStatus->status = "ROM Too Large";
+					ROMStatus->status_color = { 0xFF, 0xFF, 0x00 };
+					break;
+				}
+				ROMFileData.resize(rom_file_size);
+				target_rom_file.seekg(0, std::ios::beg);
+				target_rom_file.read(reinterpret_cast<char *>(ROMFileData.data()), rom_file_size);
+			}
+			app->System.InstallROM(std::move(ROMFileData));
+			ROMStatus->status = "Installed";
+			ROMStatus->status_color = { 0x00, 0xFF, 0x00 };
+			break;
+		}
+		case 3:
+		{
 			app->CurrentMenu = &app->MainMenu;
 			break;
 		}
@@ -1313,6 +1432,19 @@ void VIPR_Emulator::machine_options_ram_in_kb_input_complete(VIPR_Emulator::GUI:
 {
 	Application *app = static_cast<Application *>(userdata);
 	app->System.AdjustRAM(obj.value);
+}
+
+void VIPR_Emulator::machine_options_rom_file_input_complete(VIPR_Emulator::GUI::Input &obj, void *userdata)
+{
+	Application *app = static_cast<Application *>(userdata);
+	GUI::Menu &MachineOptionsMenu = app->MachineOptionsMenu;
+	GUI::Input *ROMFile = std::get_if<GUI::Input>(&MachineOptionsMenu.element_list[2].element);
+	GUI::Button *LoadROM = std::get_if<GUI::Button>(&MachineOptionsMenu.element_list[3].element);
+	GUI::Status *ROMStatus = std::get_if<GUI::Status>(&MachineOptionsMenu.element_list[4].element);
+	LoadROM->disabled = (ROMFile->stored_input.size() > 0) ? false : true;
+	ROMStatus->status = "None";
+	ROMStatus->status_color = { 0x40, 0x40, 0x40 };
+	app->DrawCurrentMenu();
 }
 
 void VIPR_Emulator::machine_memory_transfer_up(VIPR_Emulator::GUI::Menu &obj, void *userdata)

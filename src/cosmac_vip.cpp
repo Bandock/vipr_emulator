@@ -7,18 +7,7 @@
 VIPR_Emulator::COSMAC_VIP::COSMAC_VIP() : CPU(1760900.0, VIPR_Emulator::VIP_memory_read, VIPR_Emulator::VIP_memory_write, VIPR_Emulator::VIP_input, VIPR_Emulator::VIP_output, VIPR_Emulator::VIP_q_output, VIPR_Emulator::VIP_sync, this), VDC(&CPU, 0), run(false), address_inhibit_latch(true), hex_key_latch(0x0), current_hex_key(0x0), hex_key_pressed(false), hex_key_press_signal(CPU.GetEFPtr(2)), fail(false), RAM(2 << 10)
 {
 	memset(RAM.data(), 0, RAM.size());
-	{
-		std::ifstream VIP_ROMFile("VIP.rom", std::ios::binary);
-		if (VIP_ROMFile.fail())
-		{
-			fmt::print("Unable to load 'VIP.rom'.\n");
-			fail = true;
-			return;
-		}
-		fmt::print("'VIP.rom' loaded.\n");
-		VIP_ROMFile.read(reinterpret_cast<char *>(ROM.data()), 512);
-		MemoryMap[0].type = MemoryMapType::ROM;
-	}
+	MemoryMap[0].type = MemoryMapType::ROM;
 }
 
 VIPR_Emulator::COSMAC_VIP::~COSMAC_VIP()

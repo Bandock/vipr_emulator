@@ -28,7 +28,7 @@ uniform sampler2D SecondaryFramebufferTexture;
 
 void main()
 {
-	ivec2 texDim = textureSize(SecondaryFramebufferTexture, 0));
+	ivec2 texDim = textureSize(SecondaryFramebufferTexture, 0);
 	outColor = texelFetch(SecondaryFramebufferTexture, ivec2(int(outTex.x * float(texDim.x)), int(outTex.y * float(texDim.y))), 0);
 })";
 		const char *FontFragmentShader = R"(#version 130

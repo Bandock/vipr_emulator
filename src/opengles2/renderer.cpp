@@ -101,7 +101,7 @@ bool VIPR_Emulator::Renderer::Setup(SDL_Window *window)
 		MainContext = SDL_GL_CreateContext(CurrentWindow);
 		if (MainContext == nullptr)
 		{
-			fmt::print("Unable to create OpenGL ES 2.0 context.\n");
+			fmt::print("{}\n", SDL_GetError());
 			return false;
 		}
 		if (!CompileShader(PrimaryVertexShaderId, GL_VERTEX_SHADER, Shader::PrimaryVertexShader))
