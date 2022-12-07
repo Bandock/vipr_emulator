@@ -2,7 +2,7 @@
 A cross-platform COSMAC VIP emulator capable of running on a wide variety of systems.
 
 ## Usage
-In order to use this emulator, you need to supply the operating system ROM with the file name `VIP.rom`.  The naming scheme is likely to change in the future.  This ROM shouldn't be too hard to find or assemble.
+When you start this emulator, you'll need to load up a ROM file.  This can include the operating system ROM as well as custom ROMs out there.  You can load ROM files up to 32KB.  Shouldn't be hard to find the operating system ROM or even ways to build it yourself if you want to use the monitor.
 
 Only means of transferring data to and from files right now is through the `Memory Transfer` feature.  Be aware that when storing, there is currently no prompt right now for overwriting (which will change in the near future).
 

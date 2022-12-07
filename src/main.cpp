@@ -1766,11 +1766,24 @@ void VIPR_Emulator::machine_memory_transfer_activate(VIPR_Emulator::GUI::Menu &o
 					}
 					else
 					{
-						std::ofstream target_memory_file(MemoryFile->stored_input, std::ios::binary);
-						uint8_t *RAM = app->System.GetRAMData();
-						target_memory_file.write(reinterpret_cast<const char *>(&RAM[StartAddress->value]), Size->value);
-						TransferStatus->status = "Successful";
-						TransferStatus->status_color = { 0x00, 0xFF, 0x00 };
+						bool exists = false;
+						{
+							std::ifstream target_memory_file(MemoryFile->stored_input, std::ios::binary);
+							exists = target_memory_file.is_open();
+						}
+						if (!exists || TransferStatus->status == "Overwrite?")
+						{
+							std::ofstream target_memory_file(MemoryFile->stored_input, std::ios::binary);
+							uint8_t *RAM = app->System.GetRAMData();
+							target_memory_file.write(reinterpret_cast<const char *>(&RAM[StartAddress->value]), Size->value);
+							TransferStatus->status = "Successful";
+							TransferStatus->status_color = { 0x00, 0xFF, 0x00 };
+						}
+						else
+						{
+							TransferStatus->status = "Overwrite?";
+							TransferStatus->status_color = { 0xFF, 0xFF, 0x00 };
+						}
 					}
 					break;
 				}
