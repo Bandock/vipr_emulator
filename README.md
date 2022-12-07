@@ -4,7 +4,7 @@ A cross-platform COSMAC VIP emulator capable of running on a wide variety of sys
 ## Usage
 When you start this emulator, you'll need to load up a ROM file.  This can include the operating system ROM as well as custom ROMs out there.  You can load ROM files up to 32KB.  Shouldn't be hard to find the operating system ROM or even ways to build it yourself if you want to use the monitor.
 
-Only means of transferring data to and from files right now is through the `Memory Transfer` feature.  Be aware that when storing, there is currently no prompt right now for overwriting (which will change in the near future).
+Only means of transferring data to and from files right now is through the `Memory Transfer` feature.  If you're storing into a file that already exists, the "Overwrite?" transfer status will be displayed.  This is to prevent accidental overwrites.  All you have to do is activate the "Transfer" option again to overwrite the file you're targeting.
 
 You can specify 1-32KB of RAM.
 
