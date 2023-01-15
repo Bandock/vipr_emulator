@@ -121,6 +121,8 @@ void VIPR_Emulator::Application::InitializeKeyMaps()
 	{
 		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, 0 }));
 		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_CAPS }));
+		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_NUM } ));
+		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_NUM | KMOD_CAPS }));
 	};
 
 	auto InsertShiftCharacter = [this](const char character, const SDL_Scancode scancode)
@@ -131,6 +133,12 @@ void VIPR_Emulator::Application::InitializeKeyMaps()
 		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_CAPS | KMOD_LSHIFT }));
 		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_CAPS | KMOD_RSHIFT }));
 		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_CAPS | KMOD_SHIFT }));
+		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_NUM | KMOD_LSHIFT }));
+		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_NUM | KMOD_RSHIFT }));
+		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_NUM | KMOD_SHIFT }));
+		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_NUM | KMOD_CAPS | KMOD_LSHIFT }));
+		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_NUM | KMOD_CAPS | KMOD_RSHIFT }));
+		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_NUM | KMOD_CAPS | KMOD_SHIFT }));
 	};
 
 	InsertNonAlphaCharacter(' ', SDL_SCANCODE_SPACE);
@@ -178,6 +186,10 @@ void VIPR_Emulator::Application::InitializeKeyMaps()
 			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_RSHIFT }));
 			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_SHIFT }));
 			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_CAPS }));
+			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_NUM | KMOD_LSHIFT }));
+			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_NUM | KMOD_RSHIFT }));
+			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_NUM | KMOD_SHIFT }));
+			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_NUM | KMOD_CAPS }));
 		}
 	};
 
@@ -189,6 +201,10 @@ void VIPR_Emulator::Application::InitializeKeyMaps()
 			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_CAPS | KMOD_LSHIFT }));
 			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_CAPS | KMOD_RSHIFT }));
 			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_CAPS | KMOD_SHIFT }));
+			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_NUM}));
+			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_NUM | KMOD_CAPS | KMOD_LSHIFT }));
+			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_NUM | KMOD_CAPS | KMOD_RSHIFT }));
+			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_NUM | KMOD_CAPS | KMOD_SHIFT }));
 		}
 	};
 	
