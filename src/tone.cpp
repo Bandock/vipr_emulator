@@ -17,8 +17,15 @@ VIPR_Emulator::ToneGenerator::~ToneGenerator()
 	SDL_CloseAudioDevice(device);
 }
 
-void VIPR_Emulator::ToneGenerator::SetupToneGenerator()
+void VIPR_Emulator::ToneGenerator::SetupToneGenerator(std::string output_audio_device)
 {
+	if (processing)
+	{
+		processing = false;
+		AudioProcessingThread.join();
+		SDL_PauseAudioDevice(device, 1);
+		SDL_CloseAudioDevice(device);
+	}
 	processing = true;
 	SDL_AudioSpec desired;
 	SDL_zero(desired);
@@ -26,7 +33,7 @@ void VIPR_Emulator::ToneGenerator::SetupToneGenerator()
 	desired.channels = 1;
 	desired.samples = 4096;
 	desired.format = AUDIO_S32;
-	device = SDL_OpenAudioDevice(nullptr, 0, &desired, &spec, 0);
+	device = SDL_OpenAudioDevice(output_audio_device.c_str(), 0, &desired, &spec, 0);
 	SDL_PauseAudioDevice(device, 0);
 	AudioProcessingThread = std::thread(ToneGenerator::AudioProcessor, this);
 }

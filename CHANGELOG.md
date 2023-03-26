@@ -12,6 +12,8 @@
 
 - Most keys should now work with num lock turned on during input.
 
+- Added the ability to change output audio device to allow switching between different output audio devices and reduce the need to restart the whole application.
+
 ## Version 0.1
 
 - Initial Release

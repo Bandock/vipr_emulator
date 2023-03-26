@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <array>
+#include <string>
 #include <thread>
 #include <SDL.h>
 
@@ -16,7 +17,7 @@ namespace VIPR_Emulator
 			ToneGenerator();
 			~ToneGenerator();
 
-			void SetupToneGenerator();
+			void SetupToneGenerator(std::string output_audio_device);
 			
 			inline void GenerateTone(bool toggle)
 			{

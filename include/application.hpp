@@ -93,6 +93,12 @@ namespace VIPR_Emulator
 			friend void machine_memory_transfer_memory_file_input_complete(GUI::Input &obj, void *userdata);
 			friend void machine_memory_transfer_start_address_input_complete(GUI::Value &obj, void *userdata);
 			friend void machine_memory_transfer_size_input_complete(GUI::Value &obj, void *userdata);
+
+			friend void emulator_options_up(GUI::Menu &obj, void *userdata);
+			friend void emulator_options_down(GUI::Menu &obj, void *userdata);
+			friend void emulator_options_left(GUI::Menu &obj, void *userdata);
+			friend void emulator_options_right(GUI::Menu &obj, void *userdata);
+			friend void emulator_options_activate(GUI::Menu &obj, void *userdata);
 		private:
 			Window MainWindow;
 			Renderer MainRenderer;
@@ -102,7 +108,7 @@ namespace VIPR_Emulator
 			std::map<HexKey, SDL_Scancode> Hex_KeyMap;
 			std::multimap<char, ScancodeModData> Printable_KeyMap;
 			COSMAC_VIP System;
-			GUI::Menu MainMenu, MachineOptionsMenu, MachineMemoryTransferMenu;
+			GUI::Menu MainMenu, MachineOptionsMenu, MachineMemoryTransferMenu, EmulatorOptionsMenu;
 			GUI::Menu *CurrentMenu;
 			GUI::ElementData *InputFocus;
 			bool exit;
@@ -145,6 +151,12 @@ namespace VIPR_Emulator
 	void machine_memory_transfer_memory_file_input_complete(GUI::Input &obj, void *userdata);
 	void machine_memory_transfer_start_address_input_complete(GUI::Value &obj, void *userdata);
 	void machine_memory_transfer_size_input_complete(GUI::Value &obj, void *userdata);
+
+	void emulator_options_up(GUI::Menu &obj, void *userdata);
+	void emulator_options_down(GUI::Menu &obj, void *userdata);
+	void emulator_options_left(GUI::Menu &obj, void *userdata);
+	void emulator_options_right(GUI::Menu &obj, void *userdata);
+	void emulator_options_activate(GUI::Menu &obj, void *userdata);
 }
 
 #endif

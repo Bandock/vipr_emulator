@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <array>
 #include <vector>
+#include <string>
 #include <chrono>
 #include <fmt/core.h>
 
@@ -41,9 +42,9 @@ namespace VIPR_Emulator
 				VDC.AttachDisplayRenderer(DisplayRenderer);
 			}
 
-			inline void SetupAudio()
+			inline void SetupAudio(std::string output_audio_device)
 			{
-				tone_generator.SetupToneGenerator();
+				tone_generator.SetupToneGenerator(output_audio_device);
 			}
 
 			inline bool Fail() const

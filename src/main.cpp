@@ -42,9 +42,10 @@ VIPR_Emulator::Application::Application() : current_hex_key(0x0), key_down_callb
 		return;
 	}
 	System.SetupDisplay(&MainRenderer);
-	System.SetupAudio();
 	InitializeKeyMaps();
 	ConstructMenus();
+	GUI::MultiChoice *OutputAudioDevice = std::get_if<GUI::MultiChoice>(&EmulatorOptionsMenu.element_list[1].element);
+	System.SetupAudio(OutputAudioDevice->choice_list[OutputAudioDevice->current_choice]);
 	CurrentMenu = &MainMenu;
 	DrawCurrentMenu();
 	SetOperationMode(OperationMode::Menu);
@@ -78,6 +79,34 @@ void VIPR_Emulator::Application::RunMainLoop()
 					{
 						key_up_callback(this, event.key.keysym.scancode, event.key.keysym.mod);
 					}
+					break;
+				}
+				case SDL_AUDIODEVICEADDED:
+				{
+					std::vector<std::string> OutputAudioDeviceList(SDL_GetNumAudioDevices(0));
+					for (size_t i = 0; i < OutputAudioDeviceList.size(); ++i)
+					{
+						OutputAudioDeviceList[i] = SDL_GetAudioDeviceName(i, 0);
+					}
+					GUI::MultiChoice *OutputAudioDevice = std::get_if<GUI::MultiChoice>(&EmulatorOptionsMenu.element_list[1].element);
+					OutputAudioDevice->choice_list = std::move(OutputAudioDeviceList);
+					size_t choice_count = OutputAudioDevice->choice_list.size();
+					if (OutputAudioDevice->current_choice >= choice_count)
+					{
+						if (choice_count > 0)
+						{
+							OutputAudioDevice->current_choice = OutputAudioDevice->choice_list.size() - 1;
+							System.SetupAudio(OutputAudioDevice->choice_list[OutputAudioDevice->current_choice]);
+						}
+					}
+					if (CurrentMenu == &EmulatorOptionsMenu)
+					{
+						DrawCurrentMenu();
+					}
+					break;
+				}
+				case SDL_AUDIODEVICEREMOVED:
+				{
 					break;
 				}
 				case SDL_QUIT:
@@ -338,7 +367,8 @@ void VIPR_Emulator::Application::ConstructMenus()
 	MainMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Button, GUI::Button { "Switch to Machine", 64, 60, main_menu_item_color, main_menu_item_select_color, main_menu_item_disabled_color, false, true, false, nullptr } });
 	MainMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Button, GUI::Button { "Machine Options", 64, 70, main_menu_item_color, main_menu_item_select_color, main_menu_item_disabled_color, false, false, false, nullptr } });
 	MainMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Button, GUI::Button { "Machine Memory Transfer", 64, 80, main_menu_item_color, main_menu_item_select_color, main_menu_item_disabled_color, false, true, false, nullptr } });
-	MainMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Button, GUI::Button { "Exit Emulator", 64, 90, main_menu_item_color, main_menu_item_select_color, main_menu_item_disabled_color, false, false, false, nullptr } });
+	MainMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Button, GUI::Button { "Emulator Options", 64, 90, main_menu_item_color, main_menu_item_select_color, main_menu_item_disabled_color, false, false, false, nullptr } });
+	MainMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Button, GUI::Button { "Exit Emulator", 64, 100, main_menu_item_color, main_menu_item_select_color, main_menu_item_disabled_color, false, false, false, nullptr } });
 
 	MachineOptionsMenu.x = 152;
 	MachineOptionsMenu.y = 30;
@@ -373,6 +403,23 @@ void VIPR_Emulator::Application::ConstructMenus()
 	MachineMemoryTransferMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Button, GUI::Button { "Transfer", 0, 90, main_menu_item_color, main_menu_item_select_color, main_menu_item_disabled_color, false, true, false } });
 	MachineMemoryTransferMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Status, GUI::Status { "Transfer Status", "None", 0, 130, main_menu_item_color, GUI::ColorData { 0x40, 0x40, 0x40 }, false } });
 	MachineMemoryTransferMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Button, GUI::Button { "Return to Main Menu", 80, 180, main_menu_item_color, main_menu_item_select_color, main_menu_item_disabled_color, false, false, false, nullptr } });
+	EmulatorOptionsMenu.x = 132;
+	EmulatorOptionsMenu.y = 30;
+	EmulatorOptionsMenu.current_menu_item = 0;
+	EmulatorOptionsMenu.hidden = false;
+	EmulatorOptionsMenu.on_up = emulator_options_up;
+	EmulatorOptionsMenu.on_down = emulator_options_down;
+	EmulatorOptionsMenu.on_left = emulator_options_left;
+	EmulatorOptionsMenu.on_right = emulator_options_right;
+	EmulatorOptionsMenu.on_activate = emulator_options_activate;
+	EmulatorOptionsMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Text, GUI::Text { "Emulator Options", 108, 0, GUI::ColorData { 0xC0, 0xC0, 0xC0 }, false } });
+	std::vector<std::string> OutputAudioDeviceList(SDL_GetNumAudioDevices(0));
+	for (size_t i = 0; i < OutputAudioDeviceList.size(); ++i)
+	{
+		OutputAudioDeviceList[i] = SDL_GetAudioDeviceName(i, 0);
+	}
+	EmulatorOptionsMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::MultiChoice, GUI::MultiChoice { "Output Audio Device", 0, 50, main_menu_item_color, main_menu_item_select_color, GUI::ColorData { 0xFF, 0xFF, 0xFF }, 0, std::move(OutputAudioDeviceList), true, false } });
+	EmulatorOptionsMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Button, GUI::Button { "Return to Main Menu", 114, 180, main_menu_item_color, main_menu_item_select_color, main_menu_item_disabled_color, false, false, false, nullptr } });
 }
 
 void VIPR_Emulator::menu_key_down(Application *app, SDL_Scancode scancode, uint16_t modifiers)
@@ -868,7 +915,8 @@ void VIPR_Emulator::main_menu_down(VIPR_Emulator::GUI::Menu &obj, void *userdata
 	GUI::Button *SwitchToMachine = std::get_if<GUI::Button>(&obj.element_list[3].element);
 	GUI::Button *MachineOptions = std::get_if<GUI::Button>(&obj.element_list[4].element);
 	GUI::Button *MachineMemoryTransfer = std::get_if<GUI::Button>(&obj.element_list[5].element);
-	GUI::Button *ExitEmulator = std::get_if<GUI::Button>(&obj.element_list[6].element);
+	GUI::Button *EmulatorOptions = std::get_if<GUI::Button>(&obj.element_list[6].element);
+	GUI::Button *ExitEmulator = std::get_if<GUI::Button>(&obj.element_list[7].element);
 	switch (obj.current_menu_item)
 	{
 		case 0:
@@ -893,11 +941,16 @@ void VIPR_Emulator::main_menu_down(VIPR_Emulator::GUI::Menu &obj, void *userdata
 		}
 		case 4:
 		{
+			EmulatorOptions->select = false;
+			break;
+		}
+		case 5:
+		{
 			ExitEmulator->select = false;
 			break;
 		}
 	}
-	obj.current_menu_item = (obj.current_menu_item == 4) ? 0 : obj.current_menu_item + 1;
+	obj.current_menu_item = (obj.current_menu_item == 5) ? 0 : obj.current_menu_item + 1;
 	bool selected = false;
 	while (!selected)
 	{
@@ -949,6 +1002,19 @@ void VIPR_Emulator::main_menu_down(VIPR_Emulator::GUI::Menu &obj, void *userdata
 				break;
 			}
 			case 4:
+			{
+				if (!EmulatorOptions->disabled)
+				{
+					EmulatorOptions->select = true;
+					selected = true;
+				}
+				else
+				{
+					++obj.current_menu_item;
+				}
+				break;
+			}
+			case 5:
 			{
 				if (!ExitEmulator->disabled)
 				{
@@ -973,7 +1039,8 @@ void VIPR_Emulator::main_menu_up(VIPR_Emulator::GUI::Menu &obj, void *userdata)
 	GUI::Button *SwitchToMachine = std::get_if<GUI::Button>(&obj.element_list[3].element);
 	GUI::Button *MachineOptions = std::get_if<GUI::Button>(&obj.element_list[4].element);
 	GUI::Button *MachineMemoryTransfer = std::get_if<GUI::Button>(&obj.element_list[5].element);
-	GUI::Button *ExitEmulator = std::get_if<GUI::Button>(&obj.element_list[6].element);
+	GUI::Button *EmulatorOptions = std::get_if<GUI::Button>(&obj.element_list[6].element);
+	GUI::Button *ExitEmulator = std::get_if<GUI::Button>(&obj.element_list[7].element);
 	switch (obj.current_menu_item)
 	{
 		case 0:
@@ -998,11 +1065,16 @@ void VIPR_Emulator::main_menu_up(VIPR_Emulator::GUI::Menu &obj, void *userdata)
 		}
 		case 4:
 		{
+			EmulatorOptions->select = false;
+			break;
+		}
+		case 5:
+		{
 			ExitEmulator->select = false;
 			break;
 		}
 	}
-	obj.current_menu_item = (obj.current_menu_item == 0) ? 4 : obj.current_menu_item - 1;
+	obj.current_menu_item = (obj.current_menu_item == 0) ? 5 : obj.current_menu_item - 1;
 	bool selected = false;
 	while (!selected)
 	{
@@ -1054,6 +1126,19 @@ void VIPR_Emulator::main_menu_up(VIPR_Emulator::GUI::Menu &obj, void *userdata)
 				break;
 			}
 			case 4:
+			{
+				if (!EmulatorOptions->disabled)
+				{
+					EmulatorOptions->select = true;
+					selected = true;
+				}
+				else
+				{
+					--obj.current_menu_item;
+				}
+				break;
+			}
+			case 5:
 			{
 				if (!ExitEmulator->disabled)
 				{
@@ -1142,7 +1227,8 @@ void VIPR_Emulator::main_menu_activate(VIPR_Emulator::GUI::Menu &obj, void *user
 	GUI::Button *SwitchToMachine = std::get_if<GUI::Button>(&obj.element_list[3].element);
 	GUI::Button *MachineOptions = std::get_if<GUI::Button>(&obj.element_list[4].element);
 	GUI::Button *MachineMemoryTransfer = std::get_if<GUI::Button>(&obj.element_list[5].element);
-	GUI::Button *ExitEmulator = std::get_if<GUI::Button>(&obj.element_list[6].element);
+	GUI::Button *EmulatorOptions = std::get_if<GUI::Button>(&obj.element_list[6].element);
+	GUI::Button *ExitEmulator = std::get_if<GUI::Button>(&obj.element_list[7].element);
 	switch (obj.current_menu_item)
 	{
 		case 0:
@@ -1182,6 +1268,11 @@ void VIPR_Emulator::main_menu_activate(VIPR_Emulator::GUI::Menu &obj, void *user
 			break;
 		}
 		case 4:
+		{
+			app->CurrentMenu = &app->EmulatorOptionsMenu;
+			break;
+		}
+		case 5:
 		{
 			app->exit = true;
 			break;
@@ -1847,6 +1938,117 @@ void VIPR_Emulator::machine_memory_transfer_size_input_complete(VIPR_Emulator::G
 	GUI::Status *TransferStatus = std::get_if<GUI::Status>(&MachineMemoryTransferMenu.element_list[6].element);
 	TransferStatus->status = "None";
 	TransferStatus->status_color = { 0x40, 0x40, 0x40 };
+	app->DrawCurrentMenu();
+}
+
+void VIPR_Emulator::emulator_options_up(VIPR_Emulator::GUI::Menu &obj, void *userdata)
+{
+	Application *app = static_cast<Application *>(userdata);
+	GUI::MultiChoice *OutputAudioDevice = std::get_if<GUI::MultiChoice>(&obj.element_list[1].element);
+	GUI::Button *ReturnToMainMenu = std::get_if<GUI::Button>(&obj.element_list[2].element);
+	switch (obj.current_menu_item)
+	{
+		case 0:
+		{
+			OutputAudioDevice->select = false;
+			break;
+		}
+		case 1:
+		{
+			ReturnToMainMenu->select = false;
+			break;
+		}
+	}
+	obj.current_menu_item = (obj.current_menu_item == 0) ? 1 : obj.current_menu_item - 1;
+	bool selected = false;
+	while (!selected)
+	{
+		switch (obj.current_menu_item)
+		{
+			case 0:
+			{
+				OutputAudioDevice->select = true;
+				selected = true;
+				break;
+			}
+			case 1:
+			{
+				ReturnToMainMenu->select = true;
+				selected = true;
+				break;
+			}
+		}
+	}
+	app->DrawCurrentMenu();
+}
+
+void VIPR_Emulator::emulator_options_down(VIPR_Emulator::GUI::Menu &obj, void *userdata)
+{
+	Application *app = static_cast<Application *>(userdata);
+	GUI::MultiChoice *OutputAudioDevice = std::get_if<GUI::MultiChoice>(&obj.element_list[1].element);
+	GUI::Button *ReturnToMainMenu = std::get_if<GUI::Button>(&obj.element_list[2].element);
+	switch (obj.current_menu_item)
+	{
+		case 0:
+		{
+			OutputAudioDevice->select = false;
+			break;
+		}
+		case 1:
+		{
+			ReturnToMainMenu->select = false;
+			break;
+		}
+	}
+	obj.current_menu_item = (obj.current_menu_item == 1) ? 0 : obj.current_menu_item + 1;
+	bool selected = false;
+	while (!selected)
+	{
+		switch (obj.current_menu_item)
+		{
+			case 0:
+			{
+				OutputAudioDevice->select = true;
+				selected = true;
+				break;
+			}
+			case 1:
+			{
+				ReturnToMainMenu->select = true;
+				selected = true;
+				break;
+			}
+		}
+	}
+	app->DrawCurrentMenu();
+}
+
+void VIPR_Emulator::emulator_options_left(VIPR_Emulator::GUI::Menu &obj, void *userdata)
+{
+}
+
+void VIPR_Emulator::emulator_options_right(VIPR_Emulator::GUI::Menu &obj, void *userdata)
+{
+}
+
+void VIPR_Emulator::emulator_options_activate(VIPR_Emulator::GUI::Menu &obj, void *userdata)
+{
+	Application *app = static_cast<Application *>(userdata);
+	GUI::MultiChoice *OutputAudioDevice = std::get_if<GUI::MultiChoice>(&obj.element_list[1].element);
+	switch (obj.current_menu_item)
+	{
+		case 0:
+		{
+			OutputAudioDevice->current_choice = (OutputAudioDevice->current_choice == OutputAudioDevice->choice_list.size() - 1) ? 0 : OutputAudioDevice->current_choice + 1;
+			app->System.SetupAudio(OutputAudioDevice->choice_list[OutputAudioDevice->current_choice]);
+			break;
+		}
+		case 1:
+		{
+			app->CurrentMenu = &app->MainMenu;
+			break;
+		}
+	}
 	app->DrawCurrentMenu();
 }
 
