@@ -2025,10 +2025,34 @@ void VIPR_Emulator::emulator_options_down(VIPR_Emulator::GUI::Menu &obj, void *u
 
 void VIPR_Emulator::emulator_options_left(VIPR_Emulator::GUI::Menu &obj, void *userdata)
 {
+	Application *app = static_cast<Application *>(userdata);
+	GUI::MultiChoice *OutputAudioDevice = std::get_if<GUI::MultiChoice>(&obj.element_list[1].element);
+	switch (obj.current_menu_item)
+	{
+		case 0:
+		{
+			OutputAudioDevice->current_choice = (OutputAudioDevice->current_choice == 0) ? OutputAudioDevice->choice_list.size() - 1 : OutputAudioDevice->current_choice - 1;
+			app->System.SetupAudio(OutputAudioDevice->choice_list[OutputAudioDevice->current_choice]);
+			break;
+		}
+	}
+	app->DrawCurrentMenu();
 }
 
 void VIPR_Emulator::emulator_options_right(VIPR_Emulator::GUI::Menu &obj, void *userdata)
 {
+	Application *app = static_cast<Application *>(userdata);
+	GUI::MultiChoice *OutputAudioDevice = std::get_if<GUI::MultiChoice>(&obj.element_list[1].element);
+	switch (obj.current_menu_item)
+	{
+		case 0:
+		{
+			OutputAudioDevice->current_choice = (OutputAudioDevice->current_choice == OutputAudioDevice->choice_list.size() - 1) ? 0 : OutputAudioDevice->current_choice + 1;
+			app->System.SetupAudio(OutputAudioDevice->choice_list[OutputAudioDevice->current_choice]);
+			break;
+		}
+	}
+	app->DrawCurrentMenu();
 }
 
 void VIPR_Emulator::emulator_options_activate(VIPR_Emulator::GUI::Menu &obj, void *userdata)
