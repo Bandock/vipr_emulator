@@ -90,6 +90,11 @@ namespace VIPR_Emulator
 				memset(RAM.data(), 0, RAM.size());
 			}
 
+			inline void AdjustVolume(uint8_t volume)
+			{
+				tone_generator.SetVolume(volume);
+			}
+
 			inline void ResetAddressInhibitLatch()
 			{
 				if (address_inhibit_latch)

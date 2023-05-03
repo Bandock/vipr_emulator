@@ -2,7 +2,7 @@
 #include <chrono>
 #include <fmt/core.h>
 
-VIPR_Emulator::ToneGenerator::ToneGenerator() : processing(false), generate_tone(false), current_period(0.0)
+VIPR_Emulator::ToneGenerator::ToneGenerator() : processing(false), generate_tone(false), volume(0.5), current_period(0.0)
 {
 }
 
@@ -66,7 +66,7 @@ void VIPR_Emulator::ToneGenerator::AudioProcessor(ToneGenerator *generator)
 				double value = 0.0;
 				if (generator->generate_tone)
 				{
-					value = 0.2 * ((generator->current_period < 0.5 / 1400.0) ? static_cast<double>(INT32_MAX) : static_cast<double>(INT32_MIN));
+					value = generator->volume * 0.4 * ((generator->current_period < 0.5 / 1400.0) ? static_cast<double>(INT32_MAX) : static_cast<double>(INT32_MIN));
 				}
 				current_frame[i] = static_cast<int>(value);
 				generator->current_period += 1.0 / static_cast<double>(generator->spec.freq);

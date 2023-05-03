@@ -14,6 +14,8 @@
 
 - Added the ability to change output audio device to allow switching between different output audio devices and reduce the need to restart the whole application.
 
+- Added the ability to change the main volume of the application.  Can be accessed through the "Emulator Options" menu.
+
 ## Version 0.1
 
 - Initial Release

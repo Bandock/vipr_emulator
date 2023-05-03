@@ -18,6 +18,11 @@ namespace VIPR_Emulator
 			~ToneGenerator();
 
 			void SetupToneGenerator(std::string output_audio_device);
+
+			inline void SetVolume(uint8_t volume)
+			{
+				this->volume = static_cast<double>(volume) / 100.0;
+			}
 			
 			inline void GenerateTone(bool toggle)
 			{
@@ -30,6 +35,7 @@ namespace VIPR_Emulator
 			SDL_AudioDeviceID device;
 			bool processing;
 			bool generate_tone;
+			double volume;
 			double current_period;
 			std::thread AudioProcessingThread;
 	};
