@@ -120,6 +120,16 @@ namespace VIPR_Emulator
 			void ConstructMenus();
 	};
 
+	consteval uint32_t GetDefaultWindowFlags()
+	{
+		uint32_t flags = 0x00000000;
+		if constexpr (CheckCompatibleRendererType<renderer_type, RendererType::OpenGL_21, RendererType::OpenGL_30, RendererType::OpenGLES_2, RendererType::OpenGLES_3>())
+		{
+			flags |= SDL_WINDOW_OPENGL;
+		}
+		return flags;
+	}
+
 	void menu_key_down(Application *app, SDL_Scancode scancode, uint16_t modifiers);
 	void menu_key_up(Application *app, SDL_Scancode scancode, uint16_t modifiers);
 

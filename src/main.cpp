@@ -13,28 +13,35 @@ VIPR_Emulator::Application::Application() : current_hex_key(0x0), key_down_callb
 		retcode = -1;
 		return;
 	}
-	uint32_t flags = 0x00000000;
-#if defined(RENDERER_OPENGL21)
-	flags |= SDL_WINDOW_OPENGL;
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-#elif defined(RENDERER_OPENGL30)
-	flags |= SDL_WINDOW_OPENGL;
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
-#elif defined(RENDERER_OPENGLES2)
-	flags |= SDL_WINDOW_OPENGL;
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
-#elif defined(RENDERER_OPENGLES3)
-	flags |= SDL_WINDOW_OPENGL;
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
-#endif
-	MainWindow = Window(SDL_CreateWindow("VIPR Emulator", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 640, flags));
+	if constexpr (CheckCompatibleRendererType<renderer_type, RendererType::OpenGL_21, RendererType::OpenGL_30, RendererType::OpenGLES_2, RendererType::OpenGLES_3>())
+	{
+		if constexpr (CheckCompatibleRendererType<renderer_type, RendererType::OpenGL_21>())
+		{
+			SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+			SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+		}
+		else if constexpr (CheckCompatibleRendererType<renderer_type, RendererType::OpenGL_30>())
+		{
+			SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+			SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+			SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+		}
+		else if constexpr (CheckCompatibleRendererType<renderer_type, RendererType::OpenGLES_2>())
+		{
+			SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+			SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+		}
+		else if constexpr (CheckCompatibleRendererType<renderer_type, RendererType::OpenGLES_3>())
+		{
+			SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+			SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+		}
+		if constexpr (CheckCompatibleRendererType<renderer_type, RendererType::OpenGLES_2, RendererType::OpenGLES_3>())
+		{
+			SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+		}
+	}
+	MainWindow = Window(SDL_CreateWindow("VIPR Emulator", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 640, GetDefaultWindowFlags()));
 	if (!MainRenderer.Setup(MainWindow.get()))
 	{
 		fail = true;

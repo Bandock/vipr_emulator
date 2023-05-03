@@ -7,6 +7,7 @@
 #include <string>
 #include <array>
 #include <vector>
+#include "renderer_type.hpp"
 
 namespace VIPR_Emulator
 {
@@ -34,6 +35,8 @@ namespace VIPR_Emulator
 		FontColorData FontColor;
 		uint32_t FontFlags;
 	};
+
+	const RendererType renderer_type = RendererType::OpenGL_21;
 
 	class Renderer
 	{
