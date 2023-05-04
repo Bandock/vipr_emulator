@@ -1,13 +1,14 @@
-#include "tone.hpp"
+#include "vp595.hpp"
 #include "audio.hpp"
 #include <chrono>
 #include <fmt/core.h>
 
-VIPR_Emulator::ToneGenerator::ToneGenerator() : processing(false), generate_tone(false), volume(0.5), current_period(0.0)
+VIPR_Emulator::VP595::VP595() : processing(false), generate_tone(false), volume(0.5), frequency(0.0), current_period(0.0)
 {
+	SetFrequency(0x00);
 }
 
-VIPR_Emulator::ToneGenerator::~ToneGenerator()
+VIPR_Emulator::VP595::~VP595()
 {
 	if (processing)
 	{
@@ -18,7 +19,7 @@ VIPR_Emulator::ToneGenerator::~ToneGenerator()
 	SDL_CloseAudioDevice(device);
 }
 
-void VIPR_Emulator::ToneGenerator::SetupToneGenerator(std::string output_audio_device)
+void VIPR_Emulator::VP595::SetupVP595(std::string output_audio_device)
 {
 	if (processing)
 	{
@@ -32,14 +33,14 @@ void VIPR_Emulator::ToneGenerator::SetupToneGenerator(std::string output_audio_d
 	SDL_zero(desired);
 	desired.freq = 192000;
 	desired.channels = 1;
-	desired.samples = 4096;
+	desired.samples= 4096;
 	desired.format = AUDIO_S32;
 	device = SDL_OpenAudioDevice(output_audio_device.c_str(), 0, &desired, &spec, 0);
 	SDL_PauseAudioDevice(device, 0);
-	AudioProcessingThread = std::thread(ToneGenerator::AudioProcessor, this);
+	AudioProcessingThread = std::thread(VP595::AudioProcessor, this);
 }
 
-void VIPR_Emulator::ToneGenerator::AudioProcessor(ToneGenerator *generator)
+void VIPR_Emulator::VP595::AudioProcessor(VP595 *generator)
 {
 	std::chrono::high_resolution_clock::time_point audio_tp = std::chrono::high_resolution_clock::now();
 	double audio_accumulator = 0.0;
@@ -67,13 +68,13 @@ void VIPR_Emulator::ToneGenerator::AudioProcessor(ToneGenerator *generator)
 				double value = 0.0;
 				if (generator->generate_tone)
 				{
-					value = generator->volume * 0.4 * ((generator->current_period < 0.5 / 1400.0) ? static_cast<double>(INT32_MAX) : static_cast<double>(INT32_MIN));
+					value = generator->volume * 0.4 * ((generator->current_period < 0.5 / generator->frequency) ? static_cast<double>(INT32_MAX) : static_cast<double>(INT32_MIN));
 				}
 				current_frame[i] = static_cast<int>(value);
 				generator->current_period += 1.0 / static_cast<double>(generator->spec.freq);
-				if (generator->current_period >= 1.0 / 1400.0)
+				if (generator->current_period >= 1.0 / static_cast<double>(generator->frequency))
 				{
-					generator->current_period -= 1.0 / 1400.0;
+					generator->current_period -= 1.0 / static_cast<double>(generator->frequency);
 				}
 				++i;
 			}

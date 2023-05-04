@@ -16,6 +16,8 @@
 
 - Added the ability to change the main volume of the application.  Can be accessed through the "Emulator Options" menu.
 
+- VP-595 Simple Sound Board has been implemented as one of the first supported expansion boards.  When this board is enabled, it turns off the base tone generator.
+
 ## Version 0.1
 
 - Initial Release

@@ -8,6 +8,8 @@ Only means of transferring data to and from files right now is through the `Memo
 
 You can specify 1-32KB of RAM.
 
+You can also turn on different expansion boards that allow for increased capabilities such as color, additional sound, keypads, and more.  This can be found in the `Machine Options` menu, which also means the machine must be turned off before you can toggle any expansion board.
+
 To change between the `RUN` and `RESET` state, just press `RETURN`.  If you want to access the operating system, hold the `C` (mapped to `4` right now) key and press `RETURN`.  That should allow you to use the operating system like the original COSMAC VIP.
 
 ## Key Bindings
@@ -26,6 +28,9 @@ Current Key Bindings:
 |`Q`|`W`|`E`|`R`|
 |`A`|`S`|`D`|`F`|
 |`Z`|`X`|`C`|`V`|
+
+## Expansion Board Support
+- VP-595 Simple Sound Board (Replaces the base tone generator when turned on.)
 
 ## Currently Supported Renderers
 - OpenGL 2.1 (Should run on most hardware, though it does take advantage of some extensions.)

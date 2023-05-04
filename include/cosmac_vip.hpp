@@ -4,7 +4,9 @@
 #include "cdp1802.hpp"
 #include "cdp1861.hpp"
 #include "tone.hpp"
+#include "vp595.hpp"
 #include <cstdint>
+#include <memory>
 #include <array>
 #include <vector>
 #include <string>
@@ -13,16 +15,26 @@
 
 namespace VIPR_Emulator
 {
+	/*
 	enum class MemoryMapType
 	{
 		RAM, ROM
+	};
+	*/
+
+	enum class ExpansionBoardType : uint8_t
+	{
+		VP590_ColorBoard = 0,
+		VP595_SimpleSoundBoard = 1
 	};
 
 	struct MemoryMapData
 	{
 		uint16_t start_address;
 		uint16_t end_address;
-		MemoryMapType type;
+		uint8_t *memory;
+		size_t size;
+		uint8_t access;
 	};
 
 	class COSMAC_VIP
@@ -37,6 +49,42 @@ namespace VIPR_Emulator
 				CPU(current_tp);
 			}
 
+			inline void InstallExpansionBoard(ExpansionBoardType board)
+			{
+				uint8_t current_expansion_board_type = static_cast<uint8_t>(board);
+				if (!ExpansionBoard[current_expansion_board_type])
+				{
+					ExpansionBoard[current_expansion_board_type] = true;
+					switch (board)
+					{
+						case ExpansionBoardType::VP595_SimpleSoundBoard:
+						{
+							tone_generator = nullptr;
+							simple_sound_board = std::make_unique<VP595>();
+							break;
+						}
+					}
+				}
+			}
+
+			inline void UninstallExpansionBoard(ExpansionBoardType board)
+			{
+				uint8_t current_expansion_board_type = static_cast<uint8_t>(board);
+				if (ExpansionBoard[current_expansion_board_type])
+				{
+					ExpansionBoard[current_expansion_board_type] = false;
+					switch (board)
+					{
+						case ExpansionBoardType::VP595_SimpleSoundBoard:
+						{
+							simple_sound_board = nullptr;
+							tone_generator = std::make_unique<ToneGenerator>();
+							break;
+						}
+					}
+				}
+			}
+
 			inline void SetupDisplay(Renderer *DisplayRenderer)
 			{
 				VDC.AttachDisplayRenderer(DisplayRenderer);
@@ -44,7 +92,14 @@ namespace VIPR_Emulator
 
 			inline void SetupAudio(std::string output_audio_device)
 			{
-				tone_generator.SetupToneGenerator(output_audio_device);
+				if (tone_generator != nullptr)
+				{
+					tone_generator->SetupToneGenerator(output_audio_device);
+				}
+				else if (simple_sound_board != nullptr)
+				{
+					simple_sound_board->SetupVP595(output_audio_device);
+				}
 			}
 
 			inline bool Fail() const
@@ -72,6 +127,10 @@ namespace VIPR_Emulator
 			inline void InstallROM(std::vector<uint8_t> &&ROM)
 			{
 				this->ROM = ROM;
+				MemoryMap[0].memory = this->ROM.data();
+				MemoryMap[0].size = this->ROM.size();
+				MemoryMap[1].memory = this->ROM.data();
+				MemoryMap[1].size = this->ROM.size();
 			}
 
 			inline size_t GetRAM() const
@@ -92,7 +151,14 @@ namespace VIPR_Emulator
 
 			inline void AdjustVolume(uint8_t volume)
 			{
-				tone_generator.SetVolume(volume);
+				if (tone_generator != nullptr)
+				{
+					tone_generator->SetVolume(volume);
+				}
+				else if (simple_sound_board != nullptr)
+				{
+					simple_sound_board->SetVolume(volume);
+				}
 			}
 
 			inline void ResetAddressInhibitLatch()
@@ -100,7 +166,9 @@ namespace VIPR_Emulator
 				if (address_inhibit_latch)
 				{
 					address_inhibit_latch = false;
-					MemoryMap[0].type = MemoryMapType::RAM;
+					MemoryMap[0].memory = RAM.data();
+					MemoryMap[0].size = RAM.size();
+					MemoryMap[0].access |= 0x02;
 				}
 			}
 
@@ -124,7 +192,8 @@ namespace VIPR_Emulator
 		private:
 			CDP1802 CPU;
 			CDP1861 VDC;
-			ToneGenerator tone_generator;
+			std::unique_ptr<ToneGenerator> tone_generator;
+			std::unique_ptr<VP595> simple_sound_board;
 			bool run;
 			bool address_inhibit_latch;
 			uint8_t hex_key_latch; // 4-bit
@@ -134,11 +203,8 @@ namespace VIPR_Emulator
 			bool fail;
 			std::vector<uint8_t> RAM;
 			std::vector<uint8_t> ROM;
-			std::array<MemoryMapData, 2> MemoryMap =
-			{
-				MemoryMapData { 0x0000, 0x7FFF, MemoryMapType::RAM }, // RAM
-				MemoryMapData { 0x8000, 0xFFFF, MemoryMapType::ROM } // ROM
-			};
+			std::vector<MemoryMapData> MemoryMap;
+			std::array<bool, 2> ExpansionBoard;
 	};
 
 	uint8_t VIP_memory_read(uint16_t address, void *userdata);

@@ -32,7 +32,7 @@ elseif (CURRENT_RENDERER STREQUAL "OpenGL ES 3.0")
 	set(CURRENT_RENDERER_LIBRARIES OpenGL::GL)
 endif ()
 
-add_executable(vipr_emulator src/${CURRENT_RENDERER_SOURCE_DIR}/renderer.cpp src/cdp1802.cpp src/cdp1861.cpp src/tone.cpp src/cosmac_vip.cpp src/main.cpp)
+add_executable(vipr_emulator src/${CURRENT_RENDERER_SOURCE_DIR}/renderer.cpp src/cdp1802.cpp src/cdp1861.cpp src/tone.cpp src/vp595.cpp src/cosmac_vip.cpp src/main.cpp)
 add_custom_command(TARGET vipr_emulator PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/assets ${PROJECT_BINARY_DIR})
 target_include_directories(vipr_emulator PUBLIC "${PROJECT_SOURCE_DIR}/include" "${SDL2_INCLUDE_DIRS}" "${PROJECT_SOURCE_DIR}/include/${CURRENT_RENDERER_INCLUDE_DIR}")
 target_compile_features(vipr_emulator PRIVATE cxx_std_20)

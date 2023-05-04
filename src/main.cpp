@@ -390,8 +390,23 @@ void VIPR_Emulator::Application::ConstructMenus()
 	MachineOptionsMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Value, GUI::Value { "RAM (In KB)", "", 0, 50, main_menu_item_color, main_menu_item_select_color, GUI::ColorData { 0xFF, 0xFF, 0xFF }, GUI::ValueBaseType::Decimal, 2, 1, 32, 0, true, false, false, machine_options_ram_in_kb_input_complete } });
 	MachineOptionsMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Input, GUI::Input { "ROM File", "", "", 0, 60, main_menu_item_color, main_menu_item_select_color, GUI::ColorData { 0xFF, 0xFF, 0xFF }, 0, 32, 0, 0, false, false, false, machine_options_rom_file_input_complete } });
 	MachineOptionsMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Button, GUI::Button { "Load ROM", 0, 70, main_menu_item_color, main_menu_item_select_color, main_menu_item_disabled_color, false, true, false, nullptr } });
+	MachineOptionsMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Button, GUI::Button { "Expansion Board Options", 0, 80, main_menu_item_color, main_menu_item_select_color, main_menu_item_disabled_color, false, false, false, nullptr } });
 	MachineOptionsMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Status, GUI::Status { "ROM Status", "None", 0, 130, main_menu_item_color, GUI::ColorData { 0x40, 0x40, 0x40 }, false } });
 	MachineOptionsMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Button, GUI::Button { "Return to Main Menu", 64, 180, main_menu_item_color, main_menu_item_select_color, main_menu_item_disabled_color, false, false, false, nullptr } });
+
+	ExpansionBoardOptionsMenu.x = 30;
+	ExpansionBoardOptionsMenu.y = 30;
+	ExpansionBoardOptionsMenu.current_menu_item = 0;
+	ExpansionBoardOptionsMenu.hidden = false;
+	ExpansionBoardOptionsMenu.on_up = expansion_board_options_up;
+	ExpansionBoardOptionsMenu.on_down = expansion_board_options_down;
+	ExpansionBoardOptionsMenu.on_left = expansion_board_options_left;
+	ExpansionBoardOptionsMenu.on_right = expansion_board_options_right;
+	ExpansionBoardOptionsMenu.on_activate = expansion_board_options_activate;
+	ExpansionBoardOptionsMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Text, GUI::Text { "Expansion Board Options", 184, 0, GUI::ColorData { 0xC0, 0xC0, 0xC0 }, false } });
+	ExpansionBoardOptionsMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Toggle, GUI::Toggle { "VP-590 Color Board", 0, 30, main_menu_item_color, main_menu_item_select_color, GUI::ColorData { 0xFF, 0xFF, 0xFF }, true, false, false, nullptr } });
+	ExpansionBoardOptionsMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Toggle, GUI::Toggle { "VP-595 Simple Sound Board", 0, 40, main_menu_item_color, main_menu_item_select_color, GUI::ColorData { 0xFF, 0xFF, 0xFF }, false, false, false, nullptr } });
+	ExpansionBoardOptionsMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Button, GUI::Button { "Return to Machine Options", 184, 200, main_menu_item_color, main_menu_item_select_color, main_menu_item_disabled_color, false, false, false, nullptr } });
 
 	MachineMemoryTransferMenu.x = 136;
 	MachineMemoryTransferMenu.y = 30;
@@ -410,6 +425,7 @@ void VIPR_Emulator::Application::ConstructMenus()
 	MachineMemoryTransferMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Button, GUI::Button { "Transfer", 0, 90, main_menu_item_color, main_menu_item_select_color, main_menu_item_disabled_color, false, true, false } });
 	MachineMemoryTransferMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Status, GUI::Status { "Transfer Status", "None", 0, 130, main_menu_item_color, GUI::ColorData { 0x40, 0x40, 0x40 }, false } });
 	MachineMemoryTransferMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Button, GUI::Button { "Return to Main Menu", 80, 180, main_menu_item_color, main_menu_item_select_color, main_menu_item_disabled_color, false, false, false, nullptr } });
+
 	EmulatorOptionsMenu.x = 132;
 	EmulatorOptionsMenu.y = 30;
 	EmulatorOptionsMenu.current_menu_item = 0;
@@ -1295,7 +1311,8 @@ void VIPR_Emulator::machine_options_up(VIPR_Emulator::GUI::Menu &obj, void *user
 	GUI::Value *RAMInKB = std::get_if<GUI::Value>(&obj.element_list[1].element);
 	GUI::Input *ROMFile = std::get_if<GUI::Input>(&obj.element_list[2].element);
 	GUI::Button *LoadROM = std::get_if<GUI::Button>(&obj.element_list[3].element);
-	GUI::Button *ReturnToMainMenu = std::get_if<GUI::Button>(&obj.element_list[5].element);
+	GUI::Button *ExpansionBoardOptions = std::get_if<GUI::Button>(&obj.element_list[4].element);
+	GUI::Button *ReturnToMainMenu = std::get_if<GUI::Button>(&obj.element_list[6].element);
 	switch (obj.current_menu_item)
 	{
 		case 0:
@@ -1315,11 +1332,16 @@ void VIPR_Emulator::machine_options_up(VIPR_Emulator::GUI::Menu &obj, void *user
 		}
 		case 3:
 		{
+			ExpansionBoardOptions->select = false;
+			break;
+		}
+		case 4:
+		{
 			ReturnToMainMenu->select = false;
 			break;
 		}
 	}
-	obj.current_menu_item = (obj.current_menu_item == 0) ? 3 : obj.current_menu_item - 1;
+	obj.current_menu_item = (obj.current_menu_item == 0) ? 4 : obj.current_menu_item - 1;
 	bool selected = false;
 	while (!selected)
 	{
@@ -1352,6 +1374,12 @@ void VIPR_Emulator::machine_options_up(VIPR_Emulator::GUI::Menu &obj, void *user
 			}
 			case 3:
 			{
+				ExpansionBoardOptions->select = true;
+				selected = true;
+				break;
+			}
+			case 4:
+			{
 				ReturnToMainMenu->select = true;
 				selected = true;
 				break;
@@ -1367,7 +1395,8 @@ void VIPR_Emulator::machine_options_down(VIPR_Emulator::GUI::Menu &obj, void *us
 	GUI::Value *RAMInKB = std::get_if<GUI::Value>(&obj.element_list[1].element);
 	GUI::Input *ROMFile = std::get_if<GUI::Input>(&obj.element_list[2].element);
 	GUI::Button *LoadROM = std::get_if<GUI::Button>(&obj.element_list[3].element);
-	GUI::Button *ReturnToMainMenu = std::get_if<GUI::Button>(&obj.element_list[5].element);
+	GUI::Button *ExpansionBoardOptions = std::get_if<GUI::Button>(&obj.element_list[4].element);
+	GUI::Button *ReturnToMainMenu = std::get_if<GUI::Button>(&obj.element_list[6].element);
 	switch (obj.current_menu_item)
 	{
 		case 0:
@@ -1387,11 +1416,16 @@ void VIPR_Emulator::machine_options_down(VIPR_Emulator::GUI::Menu &obj, void *us
 		}
 		case 3:
 		{
+			ExpansionBoardOptions->select = false;
+			break;
+		}
+		case 4:
+		{
 			ReturnToMainMenu->select = false;
 			break;
 		}
 	}
-	obj.current_menu_item = (obj.current_menu_item == 3) ? 0 : obj.current_menu_item + 1;
+	obj.current_menu_item = (obj.current_menu_item == 4) ? 0 : obj.current_menu_item + 1;
 	bool selected = false;
 	while (!selected)
 	{
@@ -1423,6 +1457,12 @@ void VIPR_Emulator::machine_options_down(VIPR_Emulator::GUI::Menu &obj, void *us
 				break;
 			}
 			case 3:
+			{
+				ExpansionBoardOptions->select = true;
+				selected = true;
+				break;
+			}
+			case 4:
 			{
 				ReturnToMainMenu->select = true;
 				selected = true;
@@ -1476,7 +1516,7 @@ void VIPR_Emulator::machine_options_activate(VIPR_Emulator::GUI::Menu &obj, void
 	Application *app = static_cast<Application *>(userdata);
 	GUI::Value *RAMInKB = std::get_if<GUI::Value>(&obj.element_list[1].element);
 	GUI::Input *ROMFile = std::get_if<GUI::Input>(&obj.element_list[2].element);
-	GUI::Status *ROMStatus = std::get_if<GUI::Status>(&obj.element_list[4].element);
+	GUI::Status *ROMStatus = std::get_if<GUI::Status>(&obj.element_list[5].element);
 	switch (obj.current_menu_item)
 	{
 		case 0:
@@ -1536,6 +1576,11 @@ void VIPR_Emulator::machine_options_activate(VIPR_Emulator::GUI::Menu &obj, void
 		}
 		case 3:
 		{
+			app->CurrentMenu = &app->ExpansionBoardOptionsMenu;
+			break;
+		}
+		case 4:
+		{
 			app->CurrentMenu = &app->MainMenu;
 			break;
 		}
@@ -1555,10 +1600,158 @@ void VIPR_Emulator::machine_options_rom_file_input_complete(VIPR_Emulator::GUI::
 	GUI::Menu &MachineOptionsMenu = app->MachineOptionsMenu;
 	GUI::Input *ROMFile = std::get_if<GUI::Input>(&MachineOptionsMenu.element_list[2].element);
 	GUI::Button *LoadROM = std::get_if<GUI::Button>(&MachineOptionsMenu.element_list[3].element);
-	GUI::Status *ROMStatus = std::get_if<GUI::Status>(&MachineOptionsMenu.element_list[4].element);
+	GUI::Status *ROMStatus = std::get_if<GUI::Status>(&MachineOptionsMenu.element_list[5].element);
 	LoadROM->disabled = (ROMFile->stored_input.size() > 0) ? false : true;
 	ROMStatus->status = "None";
 	ROMStatus->status_color = { 0x40, 0x40, 0x40 };
+	app->DrawCurrentMenu();
+}
+
+void VIPR_Emulator::expansion_board_options_up(VIPR_Emulator::GUI::Menu &obj, void *userdata)
+{
+	Application *app = static_cast<Application *>(userdata);
+	GUI::Toggle *VP590ColorBoard = std::get_if<GUI::Toggle>(&obj.element_list[1].element);
+	GUI::Toggle *VP595SimpleSoundBoard = std::get_if<GUI::Toggle>(&obj.element_list[2].element);
+	GUI::Button *ReturnToMachineOptions = std::get_if<GUI::Button>(&obj.element_list[3].element);
+	switch (obj.current_menu_item)
+	{
+		case 0:
+		{
+			VP590ColorBoard->select = false;
+			break;
+		}
+		case 1:
+		{
+			VP595SimpleSoundBoard->select = false;
+			break;
+		}
+		case 2:
+		{
+			ReturnToMachineOptions->select = false;
+			break;
+		}
+	}
+	obj.current_menu_item = (obj.current_menu_item == 0) ? 2 : obj.current_menu_item - 1;
+	bool selected = false;
+	while (!selected)
+	{
+		switch (obj.current_menu_item)
+		{
+			case 0:
+			{
+				VP590ColorBoard->select = true;
+				selected = true;
+				break;
+			}
+			case 1:
+			{
+				VP595SimpleSoundBoard->select = true;
+				selected = true;
+				break;
+			}
+			case 2:
+			{
+				ReturnToMachineOptions->select = true;
+				selected = true;
+				break;
+			}
+		}
+	}
+	app->DrawCurrentMenu();
+}
+
+void VIPR_Emulator::expansion_board_options_down(VIPR_Emulator::GUI::Menu &obj, void *userdata)
+{
+	Application *app = static_cast<Application *>(userdata);
+	GUI::Toggle *VP590ColorBoard = std::get_if<GUI::Toggle>(&obj.element_list[1].element);
+	GUI::Toggle *VP595SimpleSoundBoard = std::get_if<GUI::Toggle>(&obj.element_list[2].element);
+	GUI::Button *ReturnToMachineOptions = std::get_if<GUI::Button>(&obj.element_list[3].element);
+	switch (obj.current_menu_item)
+	{
+		case 0:
+		{
+			VP590ColorBoard->select = false;
+			break;
+		}
+		case 1:
+		{
+			VP595SimpleSoundBoard->select = false;
+			break;
+		}
+		case 2:
+		{
+			ReturnToMachineOptions->select = false;
+			break;
+		}
+	}
+	obj.current_menu_item = (obj.current_menu_item == 2) ? 0 : obj.current_menu_item + 1;
+	bool selected = false;
+	while (!selected)
+	{
+		switch (obj.current_menu_item)
+		{
+			case 0:
+			{
+				VP590ColorBoard->select = true;
+				selected = true;
+				break;
+			}
+			case 1:
+			{
+				VP595SimpleSoundBoard->select = true;
+				selected = true;
+				break;
+			}
+			case 2:
+			{
+				ReturnToMachineOptions->select = true;
+				selected = true;
+				break;
+			}
+		}
+	}
+	app->DrawCurrentMenu();
+}
+
+void VIPR_Emulator::expansion_board_options_left(VIPR_Emulator::GUI::Menu &obj, void *userdata)
+{
+}
+
+void VIPR_Emulator::expansion_board_options_right(VIPR_Emulator::GUI::Menu &obj, void *userdata)
+{
+}
+
+void VIPR_Emulator::expansion_board_options_activate(VIPR_Emulator::GUI::Menu &obj, void *userdata)
+{
+	Application *app = static_cast<Application *>(userdata);
+	GUI::Toggle *VP590ColorBoard = std::get_if<GUI::Toggle>(&obj.element_list[1].element);
+	GUI::Toggle *VP595SimpleSoundBoard = std::get_if<GUI::Toggle>(&obj.element_list[2].element);
+	switch (obj.current_menu_item)
+	{
+		case 0:
+		{
+			break;
+		}
+		case 1:
+		{
+			VP595SimpleSoundBoard->toggle = (VP595SimpleSoundBoard->toggle) ? false : true;
+			if (!VP595SimpleSoundBoard->toggle)
+			{
+				app->System.UninstallExpansionBoard(ExpansionBoardType::VP595_SimpleSoundBoard);
+			}
+			else
+			{
+				app->System.InstallExpansionBoard(ExpansionBoardType::VP595_SimpleSoundBoard);
+			}
+			GUI::MultiChoice *OutputAudioDevice = std::get_if<GUI::MultiChoice>(&app->EmulatorOptionsMenu.element_list[1].element);
+			app->System.SetupAudio(OutputAudioDevice->choice_list[OutputAudioDevice->current_choice]);
+			break;
+		}
+		case 2:
+		{
+			app->CurrentMenu = &app->MachineOptionsMenu;
+		}
+	}
 	app->DrawCurrentMenu();
 }
 
