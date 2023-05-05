@@ -35,7 +35,7 @@ Current Key Bindings for Keypad 2 (requires VP-585 Expansion Keypad Interface or
 |`7`|`8`|`9`|`0`|
 |`U`|`I`|`O`|`P`|
 |`J`|`K`|`L`|`;`|
-|`N`|`M`|`,`|`.`|
+|`M`|`,`|`.`|`/`|
 
 ## Expansion Board Support
 - VP-585 Expansion Keypad Interface (Enables support for two keypads; turns off VP-590 Color Board.)

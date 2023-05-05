@@ -165,10 +165,10 @@ void VIPR_Emulator::Application::InitializeKeyMaps()
 	Hex_KeyMap_2[HexKey::Key_8] = SDL_SCANCODE_K;
 	Hex_KeyMap_2[HexKey::Key_9] = SDL_SCANCODE_L;
 	Hex_KeyMap_2[HexKey::Key_E] = SDL_SCANCODE_SEMICOLON;
-	Hex_KeyMap_2[HexKey::Key_A] = SDL_SCANCODE_N;
-	Hex_KeyMap_2[HexKey::Key_0] = SDL_SCANCODE_M;
-	Hex_KeyMap_2[HexKey::Key_B] = SDL_SCANCODE_COMMA;
-	Hex_KeyMap_2[HexKey::Key_F] = SDL_SCANCODE_PERIOD;
+	Hex_KeyMap_2[HexKey::Key_A] = SDL_SCANCODE_M;
+	Hex_KeyMap_2[HexKey::Key_0] = SDL_SCANCODE_COMMA;
+	Hex_KeyMap_2[HexKey::Key_B] = SDL_SCANCODE_PERIOD;
+	Hex_KeyMap_2[HexKey::Key_F] = SDL_SCANCODE_SLASH;
 
 	auto InsertNonAlphaCharacter = [this](const char character, const SDL_Scancode scancode)
 	{
