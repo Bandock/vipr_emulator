@@ -108,6 +108,7 @@ namespace VIPR_Emulator
 			OperationMode current_operation_mode;
 			uint8_t current_hex_key;
 			std::map<HexKey, SDL_Scancode> Hex_KeyMap;
+			std::map<HexKey, SDL_Scancode> Hex_KeyMap_2;
 			std::multimap<char, ScancodeModData> Printable_KeyMap;
 			COSMAC_VIP System;
 			GUI::Menu MainMenu, MachineOptionsMenu, ExpansionBoardOptionsMenu, MachineMemoryTransferMenu, EmulatorOptionsMenu;

@@ -21,7 +21,7 @@ Original COSMAC VIP Hex Keyboard Layout:
 |`7`|`8`|`9`|`E`|
 |`A`|`0`|`B`|`F`|
 
-Current Key Bindings:
+Current Key Bindings for Keypad 1:
 |0|1|2|3|
 |-|-|-|-|
 |`1`|`2`|`3`|`4`|
@@ -29,7 +29,16 @@ Current Key Bindings:
 |`A`|`S`|`D`|`F`|
 |`Z`|`X`|`C`|`V`|
 
+Current Key Bindings for Keypad 2 (requires VP-585 Expansion Keypad Interface or VP-590 Color Board to be turned on):
+|0|1|2|3|
+|-|-|-|-|
+|`7`|`8`|`9`|`0`|
+|`U`|`I`|`O`|`P`|
+|`J`|`K`|`L`|`;`|
+|`N`|`M`|`,`|`.`|
+
 ## Expansion Board Support
+- VP-585 Expansion Keypad Interface (Enables support for two keypads; turns off VP-590 Color Board.)
 - VP-595 Simple Sound Board (Replaces the base tone generator when turned on.)
 
 ## Currently Supported Renderers

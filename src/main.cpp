@@ -153,6 +153,23 @@ void VIPR_Emulator::Application::InitializeKeyMaps()
 	Hex_KeyMap[HexKey::Key_B] = SDL_SCANCODE_C;
 	Hex_KeyMap[HexKey::Key_F] = SDL_SCANCODE_V;
 
+	Hex_KeyMap_2[HexKey::Key_1] = SDL_SCANCODE_7;
+	Hex_KeyMap_2[HexKey::Key_2] = SDL_SCANCODE_8;
+	Hex_KeyMap_2[HexKey::Key_3] = SDL_SCANCODE_9;
+	Hex_KeyMap_2[HexKey::Key_C] = SDL_SCANCODE_0;
+	Hex_KeyMap_2[HexKey::Key_4] = SDL_SCANCODE_U;
+	Hex_KeyMap_2[HexKey::Key_5] = SDL_SCANCODE_I;
+	Hex_KeyMap_2[HexKey::Key_6] = SDL_SCANCODE_O;
+	Hex_KeyMap_2[HexKey::Key_D] = SDL_SCANCODE_P;
+	Hex_KeyMap_2[HexKey::Key_7] = SDL_SCANCODE_J;
+	Hex_KeyMap_2[HexKey::Key_8] = SDL_SCANCODE_K;
+	Hex_KeyMap_2[HexKey::Key_9] = SDL_SCANCODE_L;
+	Hex_KeyMap_2[HexKey::Key_E] = SDL_SCANCODE_SEMICOLON;
+	Hex_KeyMap_2[HexKey::Key_A] = SDL_SCANCODE_N;
+	Hex_KeyMap_2[HexKey::Key_0] = SDL_SCANCODE_M;
+	Hex_KeyMap_2[HexKey::Key_B] = SDL_SCANCODE_COMMA;
+	Hex_KeyMap_2[HexKey::Key_F] = SDL_SCANCODE_PERIOD;
+
 	auto InsertNonAlphaCharacter = [this](const char character, const SDL_Scancode scancode)
 	{
 		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, 0 }));
@@ -404,8 +421,9 @@ void VIPR_Emulator::Application::ConstructMenus()
 	ExpansionBoardOptionsMenu.on_right = expansion_board_options_right;
 	ExpansionBoardOptionsMenu.on_activate = expansion_board_options_activate;
 	ExpansionBoardOptionsMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Text, GUI::Text { "Expansion Board Options", 184, 0, GUI::ColorData { 0xC0, 0xC0, 0xC0 }, false } });
-	ExpansionBoardOptionsMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Toggle, GUI::Toggle { "VP-590 Color Board", 0, 30, main_menu_item_color, main_menu_item_select_color, GUI::ColorData { 0xFF, 0xFF, 0xFF }, true, false, false, nullptr } });
-	ExpansionBoardOptionsMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Toggle, GUI::Toggle { "VP-595 Simple Sound Board", 0, 40, main_menu_item_color, main_menu_item_select_color, GUI::ColorData { 0xFF, 0xFF, 0xFF }, false, false, false, nullptr } });
+	ExpansionBoardOptionsMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Toggle, GUI::Toggle { "VP-585 Expansion Keypad Interface", 0, 30, main_menu_item_color, main_menu_item_select_color, GUI::ColorData { 0xFF, 0xFF, 0xFF }, true, false, false, nullptr } });
+	ExpansionBoardOptionsMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Toggle, GUI::Toggle { "VP-590 Color Board", 0, 40, main_menu_item_color, main_menu_item_select_color, GUI::ColorData { 0xFF, 0xFF, 0xFF }, false, false, false, nullptr } });
+	ExpansionBoardOptionsMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Toggle, GUI::Toggle { "VP-595 Simple Sound Board", 0, 50, main_menu_item_color, main_menu_item_select_color, GUI::ColorData { 0xFF, 0xFF, 0xFF }, false, false, false, nullptr } });
 	ExpansionBoardOptionsMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Button, GUI::Button { "Return to Machine Options", 184, 200, main_menu_item_color, main_menu_item_select_color, main_menu_item_disabled_color, false, false, false, nullptr } });
 
 	MachineMemoryTransferMenu.x = 136;
@@ -885,7 +903,21 @@ void VIPR_Emulator::machine_key_down(VIPR_Emulator::Application *app, SDL_Scanco
 		{
 			key_found = true;
 			app->current_hex_key = static_cast<uint8_t>(k);
-			app->System.IssueHexKeyPress(app->current_hex_key);
+			app->System.IssueHexKeyPress(app->current_hex_key, 0);
+			break;
+		}
+	}
+	if (key_found)
+	{
+		return;
+	}
+	for (auto [k, v] : app->Hex_KeyMap_2)
+	{
+		if (scancode == v)
+		{
+			key_found = true;
+			app->current_hex_key = static_cast<uint8_t>(k);
+			app->System.IssueHexKeyPress(app->current_hex_key, 1);
 			break;
 		}
 	}
@@ -919,13 +951,30 @@ void VIPR_Emulator::machine_key_up(VIPR_Emulator::Application *app, SDL_Scancode
 	{
 		return;
 	}
+	bool key_found = false;
 	for (auto [k, v] : app->Hex_KeyMap)
 	{
 		if (scancode == v)
 		{
 			if (app->current_hex_key == static_cast<uint8_t>(k))
 			{
-				app->System.IssueHexKeyRelease();
+				app->System.IssueHexKeyRelease(0);
+				key_found = true;
+			}
+			break;
+		}
+	}
+	if (key_found)
+	{
+		return;
+	}
+	for (auto [k, v] : app->Hex_KeyMap_2)
+	{
+		if (scancode == v)
+		{
+			if (app->current_hex_key == static_cast<uint8_t>(k))
+			{
+				app->System.IssueHexKeyRelease(1);
 			}
 			break;
 		}
@@ -1610,28 +1659,34 @@ void VIPR_Emulator::machine_options_rom_file_input_complete(VIPR_Emulator::GUI::
 void VIPR_Emulator::expansion_board_options_up(VIPR_Emulator::GUI::Menu &obj, void *userdata)
 {
 	Application *app = static_cast<Application *>(userdata);
-	GUI::Toggle *VP590ColorBoard = std::get_if<GUI::Toggle>(&obj.element_list[1].element);
-	GUI::Toggle *VP595SimpleSoundBoard = std::get_if<GUI::Toggle>(&obj.element_list[2].element);
-	GUI::Button *ReturnToMachineOptions = std::get_if<GUI::Button>(&obj.element_list[3].element);
+	GUI::Toggle *VP585ExpansionKeypadInterface = std::get_if<GUI::Toggle>(&obj.element_list[1].element);
+	GUI::Toggle *VP590ColorBoard = std::get_if<GUI::Toggle>(&obj.element_list[2].element);
+	GUI::Toggle *VP595SimpleSoundBoard = std::get_if<GUI::Toggle>(&obj.element_list[3].element);
+	GUI::Button *ReturnToMachineOptions = std::get_if<GUI::Button>(&obj.element_list[4].element);
 	switch (obj.current_menu_item)
 	{
 		case 0:
 		{
-			VP590ColorBoard->select = false;
+			VP585ExpansionKeypadInterface->select = false;
 			break;
 		}
 		case 1:
 		{
-			VP595SimpleSoundBoard->select = false;
+			VP590ColorBoard->select = false;
 			break;
 		}
 		case 2:
+		{
+			VP595SimpleSoundBoard->select = false;
+			break;
+		}
+		case 3:
 		{
 			ReturnToMachineOptions->select = false;
 			break;
 		}
 	}
-	obj.current_menu_item = (obj.current_menu_item == 0) ? 2 : obj.current_menu_item - 1;
+	obj.current_menu_item = (obj.current_menu_item == 0) ? 3 : obj.current_menu_item - 1;
 	bool selected = false;
 	while (!selected)
 	{
@@ -1639,17 +1694,23 @@ void VIPR_Emulator::expansion_board_options_up(VIPR_Emulator::GUI::Menu &obj, vo
 		{
 			case 0:
 			{
-				VP590ColorBoard->select = true;
+				VP585ExpansionKeypadInterface->select = true;
 				selected = true;
 				break;
 			}
 			case 1:
 			{
-				VP595SimpleSoundBoard->select = true;
+				VP590ColorBoard->select = true;
 				selected = true;
 				break;
 			}
 			case 2:
+			{
+				VP595SimpleSoundBoard->select = true;
+				selected = true;
+				break;
+			}
+			case 3:
 			{
 				ReturnToMachineOptions->select = true;
 				selected = true;
@@ -1663,28 +1724,34 @@ void VIPR_Emulator::expansion_board_options_up(VIPR_Emulator::GUI::Menu &obj, vo
 void VIPR_Emulator::expansion_board_options_down(VIPR_Emulator::GUI::Menu &obj, void *userdata)
 {
 	Application *app = static_cast<Application *>(userdata);
-	GUI::Toggle *VP590ColorBoard = std::get_if<GUI::Toggle>(&obj.element_list[1].element);
-	GUI::Toggle *VP595SimpleSoundBoard = std::get_if<GUI::Toggle>(&obj.element_list[2].element);
-	GUI::Button *ReturnToMachineOptions = std::get_if<GUI::Button>(&obj.element_list[3].element);
+	GUI::Toggle *VP585ExpansionKeypadInterface = std::get_if<GUI::Toggle>(&obj.element_list[1].element);
+	GUI::Toggle *VP590ColorBoard = std::get_if<GUI::Toggle>(&obj.element_list[2].element);
+	GUI::Toggle *VP595SimpleSoundBoard = std::get_if<GUI::Toggle>(&obj.element_list[3].element);
+	GUI::Button *ReturnToMachineOptions = std::get_if<GUI::Button>(&obj.element_list[4].element);
 	switch (obj.current_menu_item)
 	{
 		case 0:
 		{
-			VP590ColorBoard->select = false;
+			VP585ExpansionKeypadInterface->select = false;
 			break;
 		}
 		case 1:
 		{
-			VP595SimpleSoundBoard->select = false;
+			VP590ColorBoard->select = false;
 			break;
 		}
 		case 2:
+		{
+			VP595SimpleSoundBoard->select = false;
+			break;
+		}
+		case 3:
 		{
 			ReturnToMachineOptions->select = false;
 			break;
 		}
 	}
-	obj.current_menu_item = (obj.current_menu_item == 2) ? 0 : obj.current_menu_item + 1;
+	obj.current_menu_item = (obj.current_menu_item == 3) ? 0 : obj.current_menu_item + 1;
 	bool selected = false;
 	while (!selected)
 	{
@@ -1692,17 +1759,23 @@ void VIPR_Emulator::expansion_board_options_down(VIPR_Emulator::GUI::Menu &obj, 
 		{
 			case 0:
 			{
-				VP590ColorBoard->select = true;
+				VP585ExpansionKeypadInterface->select = true;
 				selected = true;
 				break;
 			}
 			case 1:
 			{
-				VP595SimpleSoundBoard->select = true;
+				VP590ColorBoard->select = true;
 				selected = true;
 				break;
 			}
 			case 2:
+			{
+				VP595SimpleSoundBoard->select = true;
+				selected = true;
+				break;
+			}
+			case 3:
 			{
 				ReturnToMachineOptions->select = true;
 				selected = true;
@@ -1724,15 +1797,34 @@ void VIPR_Emulator::expansion_board_options_right(VIPR_Emulator::GUI::Menu &obj,
 void VIPR_Emulator::expansion_board_options_activate(VIPR_Emulator::GUI::Menu &obj, void *userdata)
 {
 	Application *app = static_cast<Application *>(userdata);
-	GUI::Toggle *VP590ColorBoard = std::get_if<GUI::Toggle>(&obj.element_list[1].element);
-	GUI::Toggle *VP595SimpleSoundBoard = std::get_if<GUI::Toggle>(&obj.element_list[2].element);
+	GUI::Toggle *VP585ExpansionKeypadInterface = std::get_if<GUI::Toggle>(&obj.element_list[1].element);
+	GUI::Toggle *VP590ColorBoard = std::get_if<GUI::Toggle>(&obj.element_list[2].element);
+	GUI::Toggle *VP595SimpleSoundBoard = std::get_if<GUI::Toggle>(&obj.element_list[3].element);
 	switch (obj.current_menu_item)
 	{
 		case 0:
 		{
+			VP585ExpansionKeypadInterface->toggle = (VP585ExpansionKeypadInterface->toggle) ? false : true;
+			if (!VP585ExpansionKeypadInterface->toggle)
+			{
+				app->System.UninstallExpansionBoard(ExpansionBoardType::VP585_ExpansionKeypadInterface);
+			}
+			else
+			{
+				if (VP590ColorBoard->toggle)
+				{
+					VP590ColorBoard->toggle = false;
+					app->System.UninstallExpansionBoard(ExpansionBoardType::VP590_ColorBoard);
+				}
+				app->System.InstallExpansionBoard(ExpansionBoardType::VP585_ExpansionKeypadInterface);
+			}
 			break;
 		}
 		case 1:
+		{
+			break;
+		}
+		case 2:
 		{
 			VP595SimpleSoundBoard->toggle = (VP595SimpleSoundBoard->toggle) ? false : true;
 			if (!VP595SimpleSoundBoard->toggle)
@@ -1747,7 +1839,7 @@ void VIPR_Emulator::expansion_board_options_activate(VIPR_Emulator::GUI::Menu &o
 			app->System.SetupAudio(OutputAudioDevice->choice_list[OutputAudioDevice->current_choice]);
 			break;
 		}
-		case 2:
+		case 3:
 		{
 			app->CurrentMenu = &app->MachineOptionsMenu;
 		}

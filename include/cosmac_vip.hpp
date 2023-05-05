@@ -24,8 +24,9 @@ namespace VIPR_Emulator
 
 	enum class ExpansionBoardType : uint8_t
 	{
-		VP590_ColorBoard = 0,
-		VP595_SimpleSoundBoard = 1
+		VP585_ExpansionKeypadInterface = 0, // Enables using two keypads; turns off VP590
+		VP590_ColorBoard = 1, // Adds color support and enables using two keypads; turns off VP585
+		VP595_SimpleSoundBoard = 2
 	};
 
 	struct MemoryMapData
@@ -172,15 +173,21 @@ namespace VIPR_Emulator
 				}
 			}
 
-			inline void IssueHexKeyPress(uint8_t hex_key)
+			inline void IssueHexKeyPress(uint8_t hex_key, uint8_t keypad)
 			{
-				hex_key_pressed = true;
-				current_hex_key = (hex_key & 0xF);
+				if (keypad < hex_key_pressed.size())
+				{
+					hex_key_pressed[keypad] = true;
+					current_hex_key[keypad] = (hex_key & 0xF);
+				}
 			}
 
-			inline void IssueHexKeyRelease()
+			inline void IssueHexKeyRelease(uint8_t keypad)
 			{
-				hex_key_pressed = false;
+				if (keypad < hex_key_pressed.size())
+				{
+					hex_key_pressed[keypad] = false;
+				}
 			}
 
 			friend uint8_t VIP_memory_read(uint16_t address, void *userdata);
@@ -197,14 +204,14 @@ namespace VIPR_Emulator
 			bool run;
 			bool address_inhibit_latch;
 			uint8_t hex_key_latch; // 4-bit
-			uint8_t current_hex_key; // 4-bit
-			bool hex_key_pressed;
-			bool *hex_key_press_signal;
+			std::array<uint8_t, 2> current_hex_key; // 4-bit
+			std::array<bool, 2> hex_key_pressed;
+			std::array<bool *, 2> hex_key_press_signal;
 			bool fail;
 			std::vector<uint8_t> RAM;
 			std::vector<uint8_t> ROM;
 			std::vector<MemoryMapData> MemoryMap;
-			std::array<bool, 2> ExpansionBoard;
+			std::array<bool, 3> ExpansionBoard;
 	};
 
 	uint8_t VIP_memory_read(uint16_t address, void *userdata);

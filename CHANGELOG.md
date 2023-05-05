@@ -18,6 +18,10 @@
 
 - VP-595 Simple Sound Board has been implemented as one of the first supported expansion boards.  When this board is enabled, it turns off the base tone generator.
 
+- VP-585 Expansion Keypad Interface has been implemented to enable support for two keypads without the need for the color board.
+
+- Second hexadecimal keypad is now supported whenever the VP-585 Expansion Keypad Interface or VP-590 Color Board is turned on.
+
 ## Version 0.1
 
 - Initial Release

@@ -4,7 +4,7 @@
 #include <fstream>
 #include <fmt/core.h>
 
-VIPR_Emulator::COSMAC_VIP::COSMAC_VIP() : CPU(1760900.0, VIPR_Emulator::VIP_memory_read, VIPR_Emulator::VIP_memory_write, VIPR_Emulator::VIP_input, VIPR_Emulator::VIP_output, VIPR_Emulator::VIP_q_output, VIPR_Emulator::VIP_sync, this), VDC(&CPU, 0), tone_generator(nullptr), simple_sound_board(nullptr), run(false), address_inhibit_latch(true), hex_key_latch(0x0), current_hex_key(0x0), hex_key_pressed(false), hex_key_press_signal(CPU.GetEFPtr(2)), fail(false), RAM(2 << 10)
+VIPR_Emulator::COSMAC_VIP::COSMAC_VIP() : CPU(1760900.0, VIPR_Emulator::VIP_memory_read, VIPR_Emulator::VIP_memory_write, VIPR_Emulator::VIP_input, VIPR_Emulator::VIP_output, VIPR_Emulator::VIP_q_output, VIPR_Emulator::VIP_sync, this), VDC(&CPU, 0), tone_generator(nullptr), simple_sound_board(nullptr), run(false), address_inhibit_latch(true), hex_key_latch(0x0), current_hex_key { 0x0, 0x0 }, hex_key_pressed { false, false }, hex_key_press_signal { CPU.GetEFPtr(2), CPU.GetEFPtr(3) }, fail(false), RAM(2 << 10)
 {
 	memset(RAM.data(), 0, RAM.size());
 	MemoryMap.resize(2);
@@ -185,6 +185,13 @@ void VIPR_Emulator::VIP_q_output(uint8_t Q, void *userdata)
 void VIPR_Emulator::VIP_sync(void *userdata)
 {
 	COSMAC_VIP *VIP = static_cast<COSMAC_VIP *>(userdata);
-	*VIP->hex_key_press_signal = (VIP->current_hex_key == VIP->hex_key_latch && VIP->hex_key_pressed);
+	for (size_t i = 0; i < VIP->hex_key_press_signal.size(); ++i)
+	{
+		if (i == 1 && (!VIP->ExpansionBoard[static_cast<uint8_t>(ExpansionBoardType::VP585_ExpansionKeypadInterface)] && !VIP->ExpansionBoard[static_cast<uint8_t>(ExpansionBoardType::VP590_ColorBoard)]))
+		{
+			break;
+		}
+		*VIP->hex_key_press_signal[i] = (VIP->current_hex_key[i] == VIP->hex_key_latch && VIP->hex_key_pressed[i]);
+	}
 	VIP->VDC.Sync();
 }
