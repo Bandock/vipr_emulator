@@ -940,6 +940,9 @@ void VIPR_Emulator::machine_key_down(VIPR_Emulator::Application *app, SDL_Scanco
 	}
 	else if (scancode == SDL_SCANCODE_ESCAPE)
 	{
+		app->System.IssueHexKeyRelease(0);
+		app->System.IssueHexKeyRelease(1);
+		app->System.PauseAudio(true);
 		app->SetOperationMode(OperationMode::Menu);
 		app->MainRenderer.SetDisplayType(DisplayType::Emulator);
 	}
@@ -1328,6 +1331,7 @@ void VIPR_Emulator::main_menu_activate(VIPR_Emulator::GUI::Menu &obj, void *user
 			app->SetOperationMode(OperationMode::Machine);
 			app->MainRenderer.SetDisplayType(DisplayType::Machine);
 			app->System.SetCPUCycleTimePoint(std::chrono::high_resolution_clock::now());
+			app->System.PauseAudio(false);
 			break;
 		}
 		case 2:

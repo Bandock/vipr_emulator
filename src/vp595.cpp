@@ -3,7 +3,7 @@
 #include <chrono>
 #include <fmt/core.h>
 
-VIPR_Emulator::VP595::VP595() : processing(false), generate_tone(false), volume(0.5), frequency(0.0), current_period(0.0)
+VIPR_Emulator::VP595::VP595() : processing(false), pause(false), generate_tone(false), volume(0.5), frequency(0.0), current_period(0.0)
 {
 	SetFrequency(0x00);
 }
@@ -66,7 +66,7 @@ void VIPR_Emulator::VP595::AudioProcessor(VP595 *generator)
 				}
 				audio_accumulator -= 1.0 / static_cast<double>(generator->spec.freq);
 				double value = 0.0;
-				if (generator->generate_tone)
+				if (generator->generate_tone && !generator->pause)
 				{
 					value = generator->volume * 0.4 * ((generator->current_period < 0.5 / generator->frequency) ? static_cast<double>(INT32_MAX) : static_cast<double>(INT32_MIN));
 				}

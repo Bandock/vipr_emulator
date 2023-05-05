@@ -22,6 +22,8 @@
 
 - Second hexadecimal keypad is now supported whenever the VP-585 Expansion Keypad Interface or VP-590 Color Board is turned on.
 
+- Audio is now properly paused as well as releasing any key that was held when you enter back to the main menu.
+
 ## Version 0.1
 
 - Initial Release

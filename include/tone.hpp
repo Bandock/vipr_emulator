@@ -27,11 +27,17 @@ namespace VIPR_Emulator
 				generate_tone = toggle;
 			}
 			
+			inline void Pause(bool toggle)
+			{
+				pause = toggle;
+			}
+
 			static void AudioProcessor(ToneGenerator *generator);
 		private:
 			SDL_AudioSpec spec;
 			SDL_AudioDeviceID device;
 			bool processing;
+			bool pause;
 			bool generate_tone;
 			double volume;
 			double current_period;

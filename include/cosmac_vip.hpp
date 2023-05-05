@@ -190,6 +190,18 @@ namespace VIPR_Emulator
 				}
 			}
 
+			inline void PauseAudio(bool toggle)
+			{
+				if (tone_generator != nullptr)
+				{
+					tone_generator->Pause(toggle);
+				}
+				else if (simple_sound_board != nullptr)
+				{
+					simple_sound_board->Pause(toggle);
+				}
+			}
+
 			friend uint8_t VIP_memory_read(uint16_t address, void *userdata);
 			friend void VIP_memory_write(uint16_t address, uint8_t data, void *userdata);
 			friend uint8_t VIP_input(uint8_t N, void *userdata);

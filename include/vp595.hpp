@@ -36,11 +36,17 @@ namespace VIPR_Emulator
 				generate_tone = toggle;
 			}
 
+			inline void Pause(bool toggle)
+			{
+				pause = toggle;
+			}
+
 			static void AudioProcessor(VP595 *generator);
 		private:
 			SDL_AudioSpec spec;
 			SDL_AudioDeviceID device;
 			bool processing;
+			bool pause;
 			bool generate_tone;
 			const double input_frequency = 440560.0; // Can be modified in a similar fashion to the real board.
 			double volume;
