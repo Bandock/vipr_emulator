@@ -43,8 +43,8 @@ namespace VIPR_Emulator
 				}
 				else
 				{
-					std::size_t address = ((y * 8) + (x / 8)) / 2;
-					std::size_t bit_offset = (((y * 8) + (x / 8)) % 2) * 4;
+					std::size_t address = ((y * 8) + x) / 2;
+					std::size_t bit_offset = (((y * 8) + x) % 2) * 4;
 					uint8_t dot_color = ((color_data[address] & (0x7 << bit_offset)) >> bit_offset);
 					return dot_color;
 				}

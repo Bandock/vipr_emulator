@@ -18,7 +18,7 @@ void VIPR_Emulator::VP590::Sync()
 void VIPR_Emulator::VP590_video_output(uint8_t value, uint8_t line, size_t address, void *userdata)
 {
 	VP590 *ColorBoard = static_cast<VP590 *>(userdata);
-	uint8_t x = (address / 8) % 8;
+	uint8_t x = address;
 	uint8_t y = (ColorBoard->GetResolutionMode() == VP590::ResolutionMode::Low) ? (line / 32) * 8: (line / 4);
 	ColorBoard->DisplayRenderer->DrawByte(value, line, address, ColorBoard->color_generator.GetBackgroundColor(), ColorBoard->color_generator.GetDotColor(x, y));
 }
