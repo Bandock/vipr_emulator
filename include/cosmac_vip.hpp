@@ -4,7 +4,9 @@
 #include "cdp1802.hpp"
 #include "cdp1861.hpp"
 #include "tone.hpp"
+#include "vp590.hpp"
 #include "vp595.hpp"
+#include "renderer.hpp"
 #include <cstdint>
 #include <memory>
 #include <array>
@@ -26,7 +28,7 @@ namespace VIPR_Emulator
 	{
 		VP585_ExpansionKeypadInterface = 0, // Enables using two keypads; turns off VP590
 		VP590_ColorBoard = 1, // Adds color support and enables using two keypads; turns off VP585
-		VP595_SimpleSoundBoard = 2
+		VP595_SimpleSoundBoard = 2 // Adds support for a variable tone generator; replaces the base tone generator
 	};
 
 	struct MemoryMapData
@@ -36,7 +38,11 @@ namespace VIPR_Emulator
 		uint8_t *memory;
 		size_t size;
 		uint8_t access;
+		void (*custom_memory_write)(uint16_t address, uint8_t data, void *userdata);
+		void *custom_memory_write_userdata;
 	};
+
+	void VIP_video_output(uint8_t value, uint8_t line, size_t address, void *userdata);
 
 	class COSMAC_VIP
 	{
@@ -44,7 +50,7 @@ namespace VIPR_Emulator
 			COSMAC_VIP();
 			~COSMAC_VIP();
 			void SetRunSwitch(bool run);
-			
+
 			inline void RunMachine(std::chrono::high_resolution_clock::time_point current_tp)
 			{
 				CPU(current_tp);
@@ -58,10 +64,18 @@ namespace VIPR_Emulator
 					ExpansionBoard[current_expansion_board_type] = true;
 					switch (board)
 					{
+						case ExpansionBoardType::VP590_ColorBoard:
+						{
+							VDC = nullptr;
+							color_board = std::make_unique<VP590>(&CPU);
+							color_board->AttachDisplayRenderer(DisplayRenderer);
+							MemoryMap.push_back(MemoryMapData { 0xC000, 0xDFFF, nullptr, 0x1FFF, 0x02, VP590_memory_write, color_board.get() });
+							break;
+						}
 						case ExpansionBoardType::VP595_SimpleSoundBoard:
 						{
 							tone_generator = nullptr;
-							simple_sound_board = std::make_unique<VP595>();
+							simple_sound_board = std::make_unique<VP595>(440560.0); // Uses the Simple Sound Board's oscillator frequency instead of the CPU's.
 							break;
 						}
 					}
@@ -76,6 +90,14 @@ namespace VIPR_Emulator
 					ExpansionBoard[current_expansion_board_type] = false;
 					switch (board)
 					{
+						case ExpansionBoardType::VP590_ColorBoard:
+						{
+							MemoryMap.pop_back();
+							color_board = nullptr;
+							VDC = std::make_unique<CDP1861>(&CPU, 0, VIP_video_output, this);
+							VDC->AttachDisplayRenderer(DisplayRenderer);
+							break;
+						}
 						case ExpansionBoardType::VP595_SimpleSoundBoard:
 						{
 							simple_sound_board = nullptr;
@@ -88,7 +110,8 @@ namespace VIPR_Emulator
 
 			inline void SetupDisplay(Renderer *DisplayRenderer)
 			{
-				VDC.AttachDisplayRenderer(DisplayRenderer);
+				this->DisplayRenderer = DisplayRenderer;
+				VDC->AttachDisplayRenderer(this->DisplayRenderer);
 			}
 
 			inline void SetupAudio(std::string output_audio_device)
@@ -208,10 +231,12 @@ namespace VIPR_Emulator
 			friend void VIP_output(uint8_t N, uint8_t data, void *userdata);
 			friend void VIP_q_output(uint8_t Q, void *userdata);
 			friend void VIP_sync(void *userdata);
+			friend void VIP_video_output(uint8_t value, uint8_t line, size_t address, void *userdata);
 		private:
 			CDP1802 CPU;
-			CDP1861 VDC;
+			std::unique_ptr<CDP1861> VDC;
 			std::unique_ptr<ToneGenerator> tone_generator;
+			std::unique_ptr<VP590> color_board;
 			std::unique_ptr<VP595> simple_sound_board;
 			bool run;
 			bool address_inhibit_latch;
@@ -224,6 +249,7 @@ namespace VIPR_Emulator
 			std::vector<uint8_t> ROM;
 			std::vector<MemoryMapData> MemoryMap;
 			std::array<bool, 3> ExpansionBoard;
+			Renderer *DisplayRenderer;
 	};
 
 	uint8_t VIP_memory_read(uint16_t address, void *userdata);

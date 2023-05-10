@@ -24,6 +24,8 @@
 
 - Audio is now properly paused as well as releasing any key that was held when you enter back to the main menu.
 
+- VP-590 Color Board has been implemented to provide color and enable support for two keypads.  CDP1861 code had to be partially redesigned to accommodate this particular expansion and preserve the original functionality.  On top of that, all the renderers had to be upgraded to add color support.
+
 ## Version 0.1
 
 - Initial Release

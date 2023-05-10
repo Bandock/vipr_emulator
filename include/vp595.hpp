@@ -1,6 +1,7 @@
 #ifndef _VP595_HPP_
 #define _VP595_HPP_
 
+#include "cdp1863.hpp"
 #include <cstdint>
 #include <array>
 #include <string>
@@ -12,7 +13,7 @@ namespace VIPR_Emulator
 	class VP595 // VP-595 Simple Sound Board
 	{
 		public:
-			VP595();
+			VP595(double input_frequency);
 			~VP595();
 
 			void SetupVP595(std::string output_audio_device);
@@ -28,12 +29,17 @@ namespace VIPR_Emulator
 				{
 					value = 0x80;
 				}
-				frequency = input_frequency / ((static_cast<double>(value) + 1) * 16.0);
+				frequency_generator.SetDivideRate(value);
 			}
 
 			inline void GenerateTone(bool toggle)
 			{
 				generate_tone = toggle;
+			}
+
+			inline void Reset()
+			{
+				frequency_generator.Reset();
 			}
 
 			inline void Pause(bool toggle)
@@ -48,10 +54,9 @@ namespace VIPR_Emulator
 			bool processing;
 			bool pause;
 			bool generate_tone;
-			const double input_frequency = 440560.0; // Can be modified in a similar fashion to the real board.
 			double volume;
-			double frequency;
 			double current_period;
+			CDP1863 frequency_generator;
 			std::thread AudioProcessingThread;
 	};
 }

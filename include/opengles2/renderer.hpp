@@ -23,17 +23,18 @@ namespace VIPR_Emulator
 		std::array<float, 2> tex;
 	};
 
-	struct FontColorData
+	template <typename T>
+	struct ColorData
 	{
-		float r;
-		float g;
-		float b;
-		float a;
+		T r;
+		T g;
+		T b;
+		T a;
 	};
 
 	struct FontControlData
 	{
-		FontColorData FontColor;
+		ColorData<float> FontColor;
 		uint32_t FontFlags;
 	};
 
@@ -54,7 +55,7 @@ namespace VIPR_Emulator
 			void SetFontFlags(uint32_t flags);
 			void DrawChar(char character, uint16_t x, uint16_t y);
 			void DrawText(std::string tex, uint16_t x, uint16_t y);
-			void DrawByte(uint8_t data, uint8_t line, uint8_t offset);
+			void DrawByte(uint8_t data, uint8_t line, uint8_t offset, uint8_t background_color, uint8_t dot_color);
 		private:
 			SDL_Window *CurrentWindow;
 			SDL_GLContext MainContext;
@@ -68,6 +69,25 @@ namespace VIPR_Emulator
 			FontControlData font_ctrl;
 			std::array<Vertex, 4> vertices;
 			std::array<uint8_t, 6> indices;
+			std::array<ColorData<uint8_t>, 64 * 128> display_buffer;
+
+			const std::array<ColorData<uint8_t>, 4> background_colors = {
+				ColorData<uint8_t> { 0, 0, 192, 255 },
+				ColorData<uint8_t> { 0, 0, 0, 255 },
+				ColorData<uint8_t> { 0, 192, 0, 255 },
+				ColorData<uint8_t> { 192, 0, 0, 255 }
+			};
+
+			const std::array<ColorData<uint8_t>, 8> foreground_colors = {
+				ColorData<uint8_t> { 0, 0, 0, 255 },
+				ColorData<uint8_t> { 192, 0, 0, 255 },
+				ColorData<uint8_t> { 0, 0, 192, 255 },
+				ColorData<uint8_t> { 192, 0, 192, 255 },
+				ColorData<uint8_t> { 0, 192, 0, 255 },
+				ColorData<uint8_t> { 192, 192, 0, 255 },
+				ColorData<uint8_t> { 0, 192, 192, 255 },
+				ColorData<uint8_t> { 255, 255, 255, 255 }
+			};
 
 			bool CompileShader(GLuint &shader, GLuint shader_type, const char *shader_code);
 			bool LinkProgram(GLuint &program, std::vector<GLuint> shader_list);

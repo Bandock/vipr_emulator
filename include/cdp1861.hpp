@@ -11,12 +11,14 @@
 
 namespace VIPR_Emulator
 {
+	using VideoOutputCallback = void (*)(uint8_t value, uint8_t line, size_t address, void *userdata);
+
 	void CDP1861_DMA_out(uint8_t *data, void *userdata);
 
 	class CDP1861
 	{
 		public:
-			CDP1861(CDP1802 *CPU, uint8_t EFX);
+			CDP1861(CDP1802 *CPU, uint8_t EFX, VideoOutputCallback video_output_func, void *video_output_userdata);
 			~CDP1861();
 
 			inline void AttachDisplayRenderer(Renderer *DisplayRenderer)
@@ -105,6 +107,8 @@ namespace VIPR_Emulator
 			uint16_t line_counter;
 			uint16_t display_memory_address;
 			uint8_t machine_cycle_counter;
+			void *video_output_userdata;
+			VideoOutputCallback video_output_func;
 			Renderer *DisplayRenderer;
 	};
 }

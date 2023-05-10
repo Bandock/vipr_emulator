@@ -61,7 +61,7 @@ uniform sampler2D DisplayTexture;
 void main()
 {
 	vec4 color_data = texture2D(DisplayTexture, outTex);
-	gl_FragColor = (int(color_data.r * 256.0) == 1) ? vec4(1.0, 1.0, 1.0, 1.0) : vec4(0.0, 0.0, 0.0, 1.0);
+	gl_FragColor = color_data;
 })";
 
 	}

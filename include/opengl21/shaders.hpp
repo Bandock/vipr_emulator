@@ -59,7 +59,7 @@ uniform sampler2D DisplayTexture;
 void main()
 {
 	vec4 color_data = texture2D(DisplayTexture, outTex);
-	outColor = (int(color_data.r * 256.0f) == 1) ? vec4(1.0f, 1.0f, 1.0f, 1.0f) : vec4(0.0f, 0.0f, 0.0f, 1.0f);
+	outColor = color_data;
 })";
 	}
 }

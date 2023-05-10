@@ -59,6 +59,11 @@ namespace VIPR_Emulator
 			~CDP1802();
 			void Initialize();
 
+			inline double GetCycleFrequency() const
+			{
+				return cycle_frequency;
+			}
+
 			inline void SetCycleTimePoint(std::chrono::high_resolution_clock::time_point current_tp)
 			{
 				cycle_tp = current_tp;

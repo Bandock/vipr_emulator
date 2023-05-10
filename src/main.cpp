@@ -1826,6 +1826,20 @@ void VIPR_Emulator::expansion_board_options_activate(VIPR_Emulator::GUI::Menu &o
 		}
 		case 1:
 		{
+			VP590ColorBoard->toggle = (VP590ColorBoard->toggle) ? false : true;
+			if (!VP590ColorBoard->toggle)
+			{
+				app->System.UninstallExpansionBoard(ExpansionBoardType::VP590_ColorBoard);
+			}
+			else
+			{
+				if (VP585ExpansionKeypadInterface->toggle)
+				{
+					VP585ExpansionKeypadInterface->toggle = false;
+					app->System.UninstallExpansionBoard(ExpansionBoardType::VP585_ExpansionKeypadInterface);
+				}
+				app->System.InstallExpansionBoard(ExpansionBoardType::VP590_ColorBoard);
+			}
 			break;
 		}
 		case 2:

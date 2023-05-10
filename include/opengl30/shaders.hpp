@@ -65,7 +65,7 @@ void main()
 {
 	ivec2 texDim = textureSize(DisplayTexture, 0);
 	uvec4 color_data = texelFetch(DisplayTexture, ivec2(int(outTex.x * float(texDim.x)), int(outTex.y * float(texDim.y))), 0);
-	outColor = (color_data.r == uint(1)) ? vec4(1.0f, 1.0f, 1.0f, 1.0f) : vec4(0.0f, 0.0f, 0.0f, 1.0f);
+	outColor = vec4(float(color_data.r) / 255.0f, float(color_data.g) / 255.0f, float(color_data.b) / 255.0f, float(color_data.a) / 255.0f);
 })";
 	}
 }

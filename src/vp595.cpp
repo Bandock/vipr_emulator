@@ -3,7 +3,7 @@
 #include <chrono>
 #include <fmt/core.h>
 
-VIPR_Emulator::VP595::VP595() : processing(false), pause(false), generate_tone(false), volume(0.5), frequency(0.0), current_period(0.0)
+VIPR_Emulator::VP595::VP595(double input_frequency) : processing(false), pause(false), generate_tone(false), volume(0.5), current_period(0.0), frequency_generator(input_frequency)
 {
 	SetFrequency(0x00);
 }
@@ -65,16 +65,17 @@ void VIPR_Emulator::VP595::AudioProcessor(VP595 *generator)
 					idle = false;
 				}
 				audio_accumulator -= 1.0 / static_cast<double>(generator->spec.freq);
+				double frequency = generator->frequency_generator.GetOutputFrequency();
 				double value = 0.0;
 				if (generator->generate_tone && !generator->pause)
 				{
-					value = generator->volume * 0.4 * ((generator->current_period < 0.5 / generator->frequency) ? static_cast<double>(INT32_MAX) : static_cast<double>(INT32_MIN));
+					value = generator->volume * 0.4 * ((generator->current_period < 0.5 / frequency) ? static_cast<double>(INT32_MAX) : static_cast<double>(INT32_MIN));
 				}
 				current_frame[i] = static_cast<int>(value);
 				generator->current_period += 1.0 / static_cast<double>(generator->spec.freq);
-				if (generator->current_period >= 1.0 / static_cast<double>(generator->frequency))
+				if (generator->current_period >= 1.0 / frequency)
 				{
-					generator->current_period -= 1.0 / static_cast<double>(generator->frequency);
+					generator->current_period -= 1.0 / frequency;
 				}
 				++i;
 			}

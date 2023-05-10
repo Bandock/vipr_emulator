@@ -38,7 +38,8 @@ Current Key Bindings for Keypad 2 (requires VP-585 Expansion Keypad Interface or
 |`M`|`,`|`.`|`/`|
 
 ## Expansion Board Support
-- VP-585 Expansion Keypad Interface (Enables support for two keypads; turns off VP-590 Color Board.)
+- VP-585 Expansion Keypad Interface (Enables support for two keypads; turns off the VP-590 Color Board.)
+- VP-590 Color Board (Enables color support and support for two keypads; turns off the VP-585 Expansion Keypad Interface.)
 - VP-595 Simple Sound Board (Replaces the base tone generator when turned on.)
 
 ## Currently Supported Renderers
