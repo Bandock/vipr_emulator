@@ -146,6 +146,10 @@ namespace VIPR_Emulator
 				memset(RAM.data(), 0, RAM.size());
 				SetRunSwitch(false);
 				CPU.Initialize();
+				if (color_board != nullptr)
+				{
+					color_board->ClearColorDataRAM();
+				}
 			}
 
 			inline void InstallROM(std::vector<uint8_t> &&ROM)

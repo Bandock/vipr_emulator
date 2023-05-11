@@ -46,7 +46,11 @@ namespace VIPR_Emulator
 			inline void ResetColorGenerator()
 			{
 				color_generator.Reset();
-				memset(color_data_RAM.data(), 0x00, color_data_RAM.size());
+			}
+
+			inline void ClearColorDataRAM()
+			{
+				memset(color_data_RAM.data(), 0, color_data_RAM.size());
 			}
 
 			inline void StepBackgroundColor()
