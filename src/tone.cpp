@@ -3,12 +3,13 @@
 #include <chrono>
 #include <fmt/core.h>
 
-VIPR_Emulator::ToneGenerator::ToneGenerator() : processing(false), pause(true), generate_tone(false), volume(0.5), current_period(0.0)
+VIPR_Emulator::ToneGenerator::ToneGenerator() : /* processing(false) , */ pause(true), generate_tone(false), volume(0.5), current_period(0.0)
 {
 }
 
 VIPR_Emulator::ToneGenerator::~ToneGenerator()
 {
+	/*
 	if (processing)
 	{
 		processing = false;
@@ -16,8 +17,10 @@ VIPR_Emulator::ToneGenerator::~ToneGenerator()
 	}
 	SDL_PauseAudioDevice(device, 1);
 	SDL_CloseAudioDevice(device);
+	*/
 }
 
+/*
 void VIPR_Emulator::ToneGenerator::SetupToneGenerator(std::string output_audio_device)
 {
 	if (processing)
@@ -90,4 +93,22 @@ void VIPR_Emulator::ToneGenerator::AudioProcessor(ToneGenerator *generator)
 		}
 		SDL_QueueAudio(generator->device, current_frame.data(), current_frame.size() * sizeof(int));
 	}
+}
+*/
+
+double VIPR_Emulator::tone_generator_audio_output_callback(void *source)
+{
+	constexpr double sample_rate = 1.0 / 192000.0;
+	ToneGenerator *generator = static_cast<ToneGenerator *>(source);
+	double value = 0.0;
+	if (generator->generate_tone && !generator->pause)
+	{
+		value = 0.4 * ((generator->current_period < 0.5 / 1400.0) ? static_cast<double>(INT32_MAX) : static_cast<double>(INT32_MIN));
+	}
+	generator->current_period += sample_rate;
+	if (generator->current_period >= 1.0 / 1400.0)
+	{
+		generator->current_period -= 1.0 / 1400.0;
+	}
+	return value;
 }

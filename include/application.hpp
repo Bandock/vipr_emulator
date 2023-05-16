@@ -117,7 +117,7 @@ namespace VIPR_Emulator
 			bool exit;
 			bool fail;
 			int retcode;
-			const VersionData version = { 0, 2 };
+			const VersionData version = { 0, 3 };
 
 			void SetOperationMode(OperationMode mode);
 			void ConstructMenus();

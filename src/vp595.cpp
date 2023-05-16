@@ -3,13 +3,14 @@
 #include <chrono>
 #include <fmt/core.h>
 
-VIPR_Emulator::VP595::VP595(double input_frequency) : processing(false), pause(false), generate_tone(false), volume(0.5), current_period(0.0), frequency_generator(input_frequency, CDP1863::InputClockType::Clock1)
+VIPR_Emulator::VP595::VP595(double input_frequency) : /* processing(false) , */ pause(false), generate_tone(false), volume(0.5), current_period(0.0), frequency_generator(input_frequency, CDP1863::InputClockType::Clock1)
 {
 	SetFrequency(0x00);
 }
 
 VIPR_Emulator::VP595::~VP595()
 {
+	/*
 	if (processing)
 	{
 		processing = false;
@@ -17,8 +18,10 @@ VIPR_Emulator::VP595::~VP595()
 	}
 	SDL_PauseAudioDevice(device, 1);
 	SDL_CloseAudioDevice(device);
+	*/
 }
 
+/*
 void VIPR_Emulator::VP595::SetupVP595(std::string output_audio_device)
 {
 	if (processing)
@@ -92,4 +95,23 @@ void VIPR_Emulator::VP595::AudioProcessor(VP595 *generator)
 		}
 		SDL_QueueAudio(generator->device, current_frame.data(), current_frame.size() * sizeof(int));
 	}
+}
+*/
+
+double VIPR_Emulator::VP595_audio_output_callback(void *source)
+{
+	constexpr double sample_rate = 1.0 / 192000.0;
+	VP595 *simple_sound_board = static_cast<VP595 *>(source);
+	double frequency = simple_sound_board->frequency_generator.GetOutputFrequency();
+	double value = 0.0;
+	if (simple_sound_board->generate_tone && !simple_sound_board->pause)
+	{
+		value = 0.4 * ((simple_sound_board->current_period < 0.5 / frequency) ? static_cast<double>(INT32_MAX) : static_cast<double>(INT32_MIN));
+	}
+	simple_sound_board->current_period += sample_rate;
+	if (simple_sound_board->current_period >= 1.0 / frequency)
+	{
+		simple_sound_board->current_period -= 1.0 / frequency;
+	}
+	return value;
 }

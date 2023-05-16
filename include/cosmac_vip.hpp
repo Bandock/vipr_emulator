@@ -1,6 +1,7 @@
 #ifndef _COSMAC_VIP_HPP_
 #define _COSMAC_VIP_HPP_
 
+#include "audio.hpp"
 #include "cdp1802.hpp"
 #include "cdp1861.hpp"
 #include "tone.hpp"
@@ -74,8 +75,10 @@ namespace VIPR_Emulator
 						}
 						case ExpansionBoardType::VP595_SimpleSoundBoard:
 						{
+							mixer.SetAudioOutput(0, nullptr, nullptr, 0x00);
 							tone_generator = nullptr;
 							simple_sound_board = std::make_unique<VP595>(CPU.GetCycleFrequency() / 8.0); // Uses the Simple Sound Board's oscillator frequency instead of the CPU's.
+							mixer.SetAudioOutput(0, VP595_audio_output_callback, simple_sound_board.get(), 0x03);
 							break;
 						}
 					}
@@ -100,8 +103,10 @@ namespace VIPR_Emulator
 						}
 						case ExpansionBoardType::VP595_SimpleSoundBoard:
 						{
+							mixer.SetAudioOutput(0, nullptr, nullptr, 0x03);
 							simple_sound_board = nullptr;
 							tone_generator = std::make_unique<ToneGenerator>();
+							mixer.SetAudioOutput(0, tone_generator_audio_output_callback, tone_generator.get(), 0x03);
 							break;
 						}
 					}
@@ -116,6 +121,8 @@ namespace VIPR_Emulator
 
 			inline void SetupAudio(std::string output_audio_device)
 			{
+				mixer.SetupAudioMixer(output_audio_device);
+				/*
 				if (tone_generator != nullptr)
 				{
 					tone_generator->SetupToneGenerator(output_audio_device);
@@ -124,6 +131,7 @@ namespace VIPR_Emulator
 				{
 					simple_sound_board->SetupVP595(output_audio_device);
 				}
+				*/
 			}
 
 			inline bool Fail() const
@@ -179,6 +187,8 @@ namespace VIPR_Emulator
 
 			inline void AdjustVolume(uint8_t volume)
 			{
+				mixer.SetVolume(volume);
+				/*
 				if (tone_generator != nullptr)
 				{
 					tone_generator->SetVolume(volume);
@@ -187,6 +197,7 @@ namespace VIPR_Emulator
 				{
 					simple_sound_board->SetVolume(volume);
 				}
+				*/
 			}
 
 			inline void ResetAddressInhibitLatch()
@@ -239,6 +250,7 @@ namespace VIPR_Emulator
 		private:
 			CDP1802 CPU;
 			std::unique_ptr<CDP1861> VDC;
+			AudioMixer mixer;
 			std::unique_ptr<ToneGenerator> tone_generator;
 			std::unique_ptr<VP590> color_board;
 			std::unique_ptr<VP595> simple_sound_board;

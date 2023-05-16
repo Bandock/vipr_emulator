@@ -12,6 +12,7 @@ VIPR_Emulator::COSMAC_VIP::COSMAC_VIP() : CPU(1760900.0, VIPR_Emulator::VIP_memo
 	MemoryMap[0] = MemoryMapData { 0x0000, 0x7FFF, ROM.data(), ROM.size(), 0x01, nullptr, nullptr };
 	MemoryMap[1] = MemoryMapData { 0x8000, 0xFFFF, ROM.data(), ROM.size(), 0x01, nullptr, nullptr };
 	tone_generator = std::make_unique<ToneGenerator>();
+	mixer.SetAudioOutput(0, tone_generator_audio_output_callback, tone_generator.get(), 0x03);
 	for (size_t i = 0; i < ExpansionBoard.size(); ++i)
 	{
 		ExpansionBoard[i] = false;

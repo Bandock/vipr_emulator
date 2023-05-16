@@ -5,8 +5,8 @@
 #include <cstdint>
 #include <array>
 #include <string>
-#include <thread>
-#include <SDL.h>
+// #include <thread>
+// #include <SDL.h>
 
 namespace VIPR_Emulator
 {
@@ -16,12 +16,14 @@ namespace VIPR_Emulator
 			VP595(double input_frequency);
 			~VP595();
 
+			/*
 			void SetupVP595(std::string output_audio_device);
 
 			inline void SetVolume(uint8_t volume)
 			{
 				this->volume = static_cast<double>(volume) / 100.0;
 			}
+			*/
 
 			inline void SetFrequency(uint8_t value)
 			{
@@ -47,18 +49,24 @@ namespace VIPR_Emulator
 				pause = toggle;
 			}
 
-			static void AudioProcessor(VP595 *generator);
+			// static void AudioProcessor(VP595 *generator);
+
+			friend double VP595_audio_output_callback(void *source);
 		private:
+			/*
 			SDL_AudioSpec spec;
 			SDL_AudioDeviceID device;
 			bool processing;
+			*/
 			bool pause;
 			bool generate_tone;
 			double volume;
 			double current_period;
 			CDP1863 frequency_generator;
-			std::thread AudioProcessingThread;
+			// std::thread AudioProcessingThread;
 	};
+
+	double VP595_audio_output_callback(void *source);
 }
 
 #endif
