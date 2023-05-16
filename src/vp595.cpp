@@ -3,7 +3,7 @@
 #include <chrono>
 #include <fmt/core.h>
 
-VIPR_Emulator::VP595::VP595(double input_frequency) : processing(false), pause(false), generate_tone(false), volume(0.5), current_period(0.0), frequency_generator(input_frequency)
+VIPR_Emulator::VP595::VP595(double input_frequency) : processing(false), pause(false), generate_tone(false), volume(0.5), current_period(0.0), frequency_generator(input_frequency, CDP1863::InputClockType::Clock1)
 {
 	SetFrequency(0x00);
 }

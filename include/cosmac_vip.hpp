@@ -75,7 +75,7 @@ namespace VIPR_Emulator
 						case ExpansionBoardType::VP595_SimpleSoundBoard:
 						{
 							tone_generator = nullptr;
-							simple_sound_board = std::make_unique<VP595>(440560.0); // Uses the Simple Sound Board's oscillator frequency instead of the CPU's.
+							simple_sound_board = std::make_unique<VP595>(CPU.GetCycleFrequency() / 8.0); // Uses the Simple Sound Board's oscillator frequency instead of the CPU's.
 							break;
 						}
 					}
