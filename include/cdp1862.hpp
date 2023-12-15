@@ -2,6 +2,7 @@
 #define _CDP1862_HPP_
 
 #include <cstdint>
+#include <cstdlib>
 
 namespace VIPR_Emulator
 {
