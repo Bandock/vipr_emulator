@@ -35,7 +35,7 @@ void main()
 #extension GL_ARB_explicit_attrib_location : require
 #extension GL_ARB_uniform_buffer_object : require
 
-layout(std140) uniform FontControl
+uniform FontControl
 {
 	vec4 FontColor;
 	uint FontFlags;
