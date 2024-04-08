@@ -15,6 +15,8 @@ namespace VIPR_Emulator
 
 	void CDP1861_DMA_out(uint8_t *data, void *userdata);
 
+	const uint8_t vertical_sync_line_count = 16;
+
 	class CDP1861
 	{
 		public:
@@ -58,20 +60,20 @@ namespace VIPR_Emulator
 			{
 				if (display)
 				{
-					if (line_counter >= 64 && line_counter <= 191)
+					if (line_counter >= (64 + vertical_sync_line_count) && line_counter <= (191 + vertical_sync_line_count))
 					{
 						if (machine_cycle_counter == 2)
 						{
 							CPU->IssueDMAOutRequest(8, this, CDP1861_DMA_out);
 						}
 					}
-					if (line_counter == 62 && machine_cycle_counter == 0)
+					if (line_counter == (62 + vertical_sync_line_count) && machine_cycle_counter == 0)
 					{
 						CPU->IssueInterruptRequest();
 					}
 					if (EFX != nullptr && machine_cycle_counter == 0)
 					{
-						if ((line_counter >= 60 && line_counter <= 63) || (line_counter >= 188 && line_counter <= 191))
+						if ((line_counter >= (60 + vertical_sync_line_count) && line_counter <= (63 + vertical_sync_line_count)) || (line_counter >= (188 + vertical_sync_line_count) && line_counter <= (191 + vertical_sync_line_count)))
 						{
 							*EFX = true;
 						}
@@ -81,7 +83,7 @@ namespace VIPR_Emulator
 						}
 					}
 				}
-				if (line_counter == 192 && machine_cycle_counter == 0 && DisplayRenderer != nullptr)
+				if (line_counter == (192 + vertical_sync_line_count) && machine_cycle_counter == 0 && DisplayRenderer != nullptr)
 				{
 					DisplayRenderer->Render();
 				}

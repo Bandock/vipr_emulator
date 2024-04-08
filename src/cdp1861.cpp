@@ -24,7 +24,7 @@ void VIPR_Emulator::CDP1861_DMA_out(uint8_t *data, void *userdata)
 	*/
 	if (VDC->video_output_func != nullptr)
 	{
-		VDC->video_output_func(*data, VDC->line_counter - 64, VDC->display_memory_address % bytes_per_line, VDC->video_output_userdata);
+		VDC->video_output_func(*data, VDC->line_counter - (64 + vertical_sync_line_count), VDC->display_memory_address % bytes_per_line, VDC->video_output_userdata);
 	}
 	++VDC->display_memory_address;
 	constexpr uint16_t max_display_size = (64 * 128) / 8;

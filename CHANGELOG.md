@@ -4,6 +4,8 @@
 
 - Changed audio handling to utilize a dedicated mixer that retrieve output from different sources.  Both the Tone Generator and VP-595 Simple Sound Board no longer need to utilize their own processing threads, but instead use callbacks for the mixer.  This mixer also supports stereo (two channel) instead of mono to prepare for the VP-550 Supersound Board.
 
+- Modified the CDP1861 code to account for vertical sync.
+
 ## Version 0.2
 
 - Changed the message when GL Context creation fails in all OpenGL-based renderers to use the one supplied by SDL2.
