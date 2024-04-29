@@ -6,6 +6,8 @@
 
 - Modified the CDP1861 code to account for vertical sync.
 
+- Added the "Set" option to the memory transfer menu to enable setting/clearing memory without having to power the machine off.
+
 ## Version 0.2
 
 - Changed the message when GL Context creation fails in all OpenGL-based renderers to use the one supplied by SDL2.

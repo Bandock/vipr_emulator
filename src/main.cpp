@@ -437,7 +437,7 @@ void VIPR_Emulator::Application::ConstructMenus()
 	MachineMemoryTransferMenu.on_activate = machine_memory_transfer_activate;
 	MachineMemoryTransferMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Text, GUI::Text { "Machine Memory Transfer", 72, 0, GUI::ColorData { 0xC0, 0xC0, 0xC0 }, false } });
 	MachineMemoryTransferMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Input, GUI::Input { "Memory File", "", "", 0, 50, main_menu_item_color, main_menu_item_select_color, GUI::ColorData { 0xFF, 0xFF, 0xFF }, 0, 32, 0, 0, true, false, false, machine_memory_transfer_memory_file_input_complete } });
-	MachineMemoryTransferMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::MultiChoice, GUI::MultiChoice { "Transfer Type", 0, 60, main_menu_item_color, main_menu_item_select_color, GUI::ColorData { 0xFF, 0xFF, 0xFF }, 0, std::vector<std::string> { "Load", "Store" }, false, false } });
+	MachineMemoryTransferMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::MultiChoice, GUI::MultiChoice { "Transfer Type", 0, 60, main_menu_item_color, main_menu_item_select_color, GUI::ColorData { 0xFF, 0xFF, 0xFF }, 0, std::vector<std::string> { "Load", "Store", "Set" }, false, false}});
 	MachineMemoryTransferMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Value, GUI::Value { "Start Address", "", 0, 70, main_menu_item_color, main_menu_item_select_color, GUI::ColorData { 0xFF, 0xFF, 0xFF }, GUI::ValueBaseType::Hexadecimal, 0x0000, 0x0000, 0x7FFF, 0, false, false, false, machine_memory_transfer_start_address_input_complete } });
 	MachineMemoryTransferMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Value, GUI::Value { "Size", "", 0, 80, main_menu_item_color, main_menu_item_select_color, GUI::ColorData { 0xFF, 0xFF, 0xFF }, GUI::ValueBaseType::Decimal, 512, 1, 32768, 0, false, false, false, machine_memory_transfer_size_input_complete } });
 	MachineMemoryTransferMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Button, GUI::Button { "Transfer", 0, 90, main_menu_item_color, main_menu_item_select_color, main_menu_item_disabled_color, false, true, false } });
@@ -2200,6 +2200,30 @@ void VIPR_Emulator::machine_memory_transfer_activate(VIPR_Emulator::GUI::Menu &o
 						else
 						{
 							TransferStatus->status = "Overwrite?";
+							TransferStatus->status_color = { 0xFF, 0xFF, 0x00 };
+						}
+					}
+					break;
+				}
+				case 2:
+				{
+					if (StartAddress->value + Size->value > app->System.GetRAM())
+					{
+						TransferStatus->status = "Failed";
+						TransferStatus->status_color = { 0xFF, 0x00, 0x00 };
+					}
+					else
+					{
+						if (TransferStatus->status == "Set?")
+						{
+							uint8_t* RAM = app->System.GetRAMData();
+							memset(&RAM[StartAddress->value], 0x00, Size->value);
+							TransferStatus->status = "Successful";
+							TransferStatus->status_color = { 0x00, 0xFF, 0x00 };
+						}
+						else
+						{
+							TransferStatus->status = "Set?";
 							TransferStatus->status_color = { 0xFF, 0xFF, 0x00 };
 						}
 					}
