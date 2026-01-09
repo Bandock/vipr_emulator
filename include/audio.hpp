@@ -6,7 +6,7 @@
 #include <vector>
 #include <thread>
 #include <mutex>
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 namespace VIPR_Emulator
 {
@@ -53,6 +53,7 @@ namespace VIPR_Emulator
 		private:
 			SDL_AudioSpec spec;
 			SDL_AudioDeviceID device;
+			SDL_AudioStream *playback_stream;
 			bool processing;
 			double volume;
 			std::thread AudioProcessingThread;

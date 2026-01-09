@@ -8,6 +8,8 @@
 
 - Added the "Set" option to the memory transfer menu to enable setting/clearing memory without having to power the machine off.
 
+- Upgraded from SDL2 to SDL3!  This is a critical change as SDL2 is no longer supported.
+
 ## Version 0.2
 
 - Changed the message when GL Context creation fails in all OpenGL-based renderers to use the one supplied by SDL2.

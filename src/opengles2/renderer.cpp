@@ -93,7 +93,7 @@ VIPR_Emulator::Renderer::~Renderer()
 		{
 			glDeleteShader(PrimaryVertexShaderId);
 		}
-		SDL_GL_DeleteContext(MainContext);
+		SDL_GL_DestroyContext(MainContext);
 	}
 }
 

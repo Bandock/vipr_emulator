@@ -1,12 +1,13 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.26)
 project(vipr_emulator VERSION 0.3 LANGUAGES CXX)
 
 find_package(Threads REQUIRED)
 find_package(fmt REQUIRED)
-find_package(SDL2 REQUIRED)
+find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3)
 
 set(CURRENT_RENDERER "OpenGL 2.1" CACHE STRING "Renderer to build with.")
 set_property(CACHE CURRENT_RENDERER PROPERTY STRINGS "OpenGL 2.1;OpenGL 3.0;OpenGL ES 2.0;OpenGL ES 3.0")
+
 
 if (CURRENT_RENDERER STREQUAL "OpenGL 2.1")
 	find_package(OpenGL REQUIRED)
@@ -34,6 +35,6 @@ endif ()
 
 add_executable(vipr_emulator src/${CURRENT_RENDERER_SOURCE_DIR}/renderer.cpp src/audio.cpp src/cdp1802.cpp src/cdp1861.cpp src/cdp1862.cpp src/tone.cpp src/vp590.cpp src/cdp1863.cpp src/vp595.cpp src/cosmac_vip.cpp src/main.cpp)
 add_custom_command(TARGET vipr_emulator PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/assets ${PROJECT_BINARY_DIR})
-target_include_directories(vipr_emulator PUBLIC "${PROJECT_SOURCE_DIR}/include" "${SDL2_INCLUDE_DIRS}" "${PROJECT_SOURCE_DIR}/include/${CURRENT_RENDERER_INCLUDE_DIR}")
+target_include_directories(vipr_emulator PUBLIC "${PROJECT_SOURCE_DIR}/include" "${PROJECT_SOURCE_DIR}/include/${CURRENT_RENDERER_INCLUDE_DIR}")
 target_compile_features(vipr_emulator PRIVATE cxx_std_20)
-target_link_libraries(vipr_emulator fmt::fmt SDL2 ${CURRENT_RENDERER_LIBRARIES} Threads::Threads msbtfont)
+target_link_libraries(vipr_emulator PRIVATE fmt::fmt SDL3::SDL3 ${CURRENT_RENDERER_LIBRARIES} Threads::Threads msbtfont)

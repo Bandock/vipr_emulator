@@ -7,7 +7,7 @@
 #include <fmt/core.h>
 #include <memory>
 #include <map>
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 namespace VIPR_Emulator
 {

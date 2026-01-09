@@ -181,7 +181,7 @@ namespace VIPR_Emulator
 
 			inline void AdjustRAM(uint8_t RAM_KB)
 			{
-				RAM.resize(RAM_KB << 10);
+				RAM.resize(static_cast<size_t>(RAM_KB) << 10);
 				memset(RAM.data(), 0, RAM.size());
 			}
 

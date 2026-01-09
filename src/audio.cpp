@@ -2,8 +2,9 @@
 #include <chrono>
 #include <fmt/core.h>
 
-VIPR_Emulator::AudioMixer::AudioMixer() : processing(false), volume(0.5), audio_output(2)
+VIPR_Emulator::AudioMixer::AudioMixer() : playback_stream(nullptr), processing(false), volume(0.5), audio_output(2)
 {
+	SDL_zero(spec);
 }
 
 VIPR_Emulator::AudioMixer::~AudioMixer()
@@ -13,7 +14,10 @@ VIPR_Emulator::AudioMixer::~AudioMixer()
 		processing = false;
 		AudioProcessingThread.join();
 	}
-	SDL_PauseAudioDevice(device, 1);
+	if (playback_stream != nullptr)
+	{
+		SDL_UnbindAudioStream(playback_stream);
+	}
 	SDL_CloseAudioDevice(device);
 }
 
@@ -23,18 +27,30 @@ void VIPR_Emulator::AudioMixer::SetupAudioMixer(std::string output_audio_device)
 	{
 		processing = false;
 		AudioProcessingThread.join();
-		SDL_PauseAudioDevice(device, 1);
+		if (playback_stream != nullptr)
+		{
+			SDL_UnbindAudioStream(playback_stream);
+			SDL_DestroyAudioStream(playback_stream);
+		}
 		SDL_CloseAudioDevice(device);
 	}
 	processing = true;
-	SDL_AudioSpec desired;
-	SDL_zero(desired);
-	desired.freq = 192000;
-	desired.channels = 2;
-	desired.samples = 4096;
-	desired.format = AUDIO_S32;
-	device = SDL_OpenAudioDevice(output_audio_device.c_str(), 0, &desired, &spec, 0);
-	SDL_PauseAudioDevice(device, 0);
+	int device_count = 0;
+	SDL_AudioDeviceID* playback_devices = SDL_GetAudioPlaybackDevices(&device_count);
+	for (int i = 0; i < device_count; ++i)
+	{
+		std::string device_name = SDL_GetAudioDeviceName(playback_devices[i]);
+		if (device_name == output_audio_device)
+		{
+			device = SDL_OpenAudioDevice(playback_devices[i], nullptr);
+			spec.freq = 192000;
+			spec.channels = 2;
+			spec.format = SDL_AUDIO_S32LE;
+			playback_stream = SDL_CreateAudioStream(&spec, nullptr);
+			SDL_BindAudioStreams(device, &playback_stream, 1);
+			break;
+		}
+	}
 	AudioProcessingThread = std::thread(AudioMixer::AudioProcessor, this);
 }
 
@@ -90,11 +106,21 @@ void VIPR_Emulator::AudioMixer::AudioProcessor(AudioMixer *mixer)
 			}
 		}
 		constexpr size_t buffer_max = current_frame.size() * sizeof(StereoAudioData) * 2;
-		while (SDL_GetQueuedAudioSize(mixer->device) >= buffer_max)
+		if (mixer->playback_stream != nullptr)
 		{
-			SDL_Delay(10);
-			audio_tp = std::chrono::high_resolution_clock::now();
+			while (SDL_GetAudioStreamQueued(mixer->playback_stream) >= buffer_max)
+			{
+				SDL_Delay(10);
+				audio_tp = std::chrono::high_resolution_clock::now();
+				if (!mixer->processing)
+				{
+					SDL_ClearAudioStream(mixer->playback_stream);
+				}
+			}
+			if (mixer->processing)
+			{
+				SDL_PutAudioStreamData(mixer->playback_stream, current_frame.data(), current_frame.size() * sizeof(StereoAudioData));
+			}
 		}
-		SDL_QueueAudio(mixer->device, current_frame.data(), current_frame.size() * sizeof(StereoAudioData));
 	}
 }

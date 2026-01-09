@@ -1,4 +1,5 @@
 #include "application.hpp"
+#include <SDL3/SDL_main.h>
 #include <chrono>
 #include <fstream>
 #include <sstream>
@@ -41,7 +42,7 @@ VIPR_Emulator::Application::Application() : current_hex_key(0x0), key_down_callb
 			SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
 		}
 	}
-	MainWindow = Window(SDL_CreateWindow("VIPR Emulator", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 640, GetDefaultWindowFlags()));
+	MainWindow = Window(SDL_CreateWindow("VIPR Emulator", 1280, 640, GetDefaultWindowFlags()));
 	if (!MainRenderer.Setup(MainWindow.get()))
 	{
 		fail = true;
@@ -72,28 +73,30 @@ void VIPR_Emulator::Application::RunMainLoop()
 		{
 			switch (event.type)
 			{
-				case SDL_KEYDOWN:
+				case SDL_EVENT_KEY_DOWN:
 				{
 					if (key_down_callback != nullptr)
 					{
-						key_down_callback(this, event.key.keysym.scancode, event.key.keysym.mod);
+						key_down_callback(this, event.key.scancode, event.key.mod);
 					}
 					break;
 				}
-				case SDL_KEYUP:
+				case SDL_EVENT_KEY_UP:
 				{
 					if (key_up_callback != nullptr)
 					{
-						key_up_callback(this, event.key.keysym.scancode, event.key.keysym.mod);
+						key_up_callback(this, event.key.scancode, event.key.mod);
 					}
 					break;
 				}
-				case SDL_AUDIODEVICEADDED:
+				case SDL_EVENT_AUDIO_DEVICE_ADDED:
 				{
-					std::vector<std::string> OutputAudioDeviceList(SDL_GetNumAudioDevices(0));
+					int device_count = 0;
+					SDL_AudioDeviceID *playback_devices = SDL_GetAudioPlaybackDevices(&device_count);
+					std::vector<std::string> OutputAudioDeviceList(device_count);
 					for (size_t i = 0; i < OutputAudioDeviceList.size(); ++i)
 					{
-						OutputAudioDeviceList[i] = SDL_GetAudioDeviceName(i, 0);
+						OutputAudioDeviceList[i] = SDL_GetAudioDeviceName(playback_devices[i]);
 					}
 					GUI::MultiChoice *OutputAudioDevice = std::get_if<GUI::MultiChoice>(&EmulatorOptionsMenu.element_list[1].element);
 					OutputAudioDevice->choice_list = std::move(OutputAudioDeviceList);
@@ -112,11 +115,11 @@ void VIPR_Emulator::Application::RunMainLoop()
 					}
 					break;
 				}
-				case SDL_AUDIODEVICEREMOVED:
+				case SDL_EVENT_AUDIO_DEVICE_REMOVED:
 				{
 					break;
 				}
-				case SDL_QUIT:
+				case SDL_EVENT_QUIT:
 				{
 					exit = true;
 					break;
@@ -173,25 +176,25 @@ void VIPR_Emulator::Application::InitializeKeyMaps()
 	auto InsertNonAlphaCharacter = [this](const char character, const SDL_Scancode scancode)
 	{
 		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, 0 }));
-		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_CAPS }));
-		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_NUM } ));
-		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_NUM | KMOD_CAPS }));
+		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, SDL_KMOD_CAPS }));
+		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, SDL_KMOD_NUM } ));
+		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, SDL_KMOD_NUM | SDL_KMOD_CAPS }));
 	};
 
 	auto InsertShiftCharacter = [this](const char character, const SDL_Scancode scancode)
 	{
-		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_LSHIFT }));
-		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_RSHIFT }));
-		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_SHIFT }));
-		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_CAPS | KMOD_LSHIFT }));
-		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_CAPS | KMOD_RSHIFT }));
-		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_CAPS | KMOD_SHIFT }));
-		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_NUM | KMOD_LSHIFT }));
-		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_NUM | KMOD_RSHIFT }));
-		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_NUM | KMOD_SHIFT }));
-		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_NUM | KMOD_CAPS | KMOD_LSHIFT }));
-		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_NUM | KMOD_CAPS | KMOD_RSHIFT }));
-		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_NUM | KMOD_CAPS | KMOD_SHIFT }));
+		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, SDL_KMOD_LSHIFT }));
+		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, SDL_KMOD_RSHIFT }));
+		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, SDL_KMOD_SHIFT }));
+		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, SDL_KMOD_CAPS | SDL_KMOD_LSHIFT }));
+		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, SDL_KMOD_CAPS | SDL_KMOD_RSHIFT }));
+		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, SDL_KMOD_CAPS | SDL_KMOD_SHIFT }));
+		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, SDL_KMOD_NUM | SDL_KMOD_LSHIFT }));
+		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, SDL_KMOD_NUM | SDL_KMOD_RSHIFT }));
+		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, SDL_KMOD_NUM | SDL_KMOD_SHIFT }));
+		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, SDL_KMOD_NUM | SDL_KMOD_CAPS | SDL_KMOD_LSHIFT }));
+		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, SDL_KMOD_NUM | SDL_KMOD_CAPS | SDL_KMOD_RSHIFT }));
+		Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, SDL_KMOD_NUM | SDL_KMOD_CAPS | SDL_KMOD_SHIFT }));
 	};
 
 	InsertNonAlphaCharacter(' ', SDL_SCANCODE_SPACE);
@@ -235,14 +238,14 @@ void VIPR_Emulator::Application::InitializeKeyMaps()
 	{
 		if (isupper(character))
 		{
-			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_LSHIFT }));
-			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_RSHIFT }));
-			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_SHIFT }));
-			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_CAPS }));
-			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_NUM | KMOD_LSHIFT }));
-			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_NUM | KMOD_RSHIFT }));
-			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_NUM | KMOD_SHIFT }));
-			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_NUM | KMOD_CAPS }));
+			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, SDL_KMOD_LSHIFT }));
+			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, SDL_KMOD_RSHIFT }));
+			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, SDL_KMOD_SHIFT }));
+			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, SDL_KMOD_CAPS }));
+			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, SDL_KMOD_NUM | SDL_KMOD_LSHIFT }));
+			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, SDL_KMOD_NUM | SDL_KMOD_RSHIFT }));
+			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, SDL_KMOD_NUM | SDL_KMOD_SHIFT }));
+			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, SDL_KMOD_NUM | SDL_KMOD_CAPS }));
 		}
 	};
 
@@ -251,13 +254,13 @@ void VIPR_Emulator::Application::InitializeKeyMaps()
 		if (islower(character))
 		{
 			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, 0 }));
-			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_CAPS | KMOD_LSHIFT }));
-			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_CAPS | KMOD_RSHIFT }));
-			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_CAPS | KMOD_SHIFT }));
-			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_NUM}));
-			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_NUM | KMOD_CAPS | KMOD_LSHIFT }));
-			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_NUM | KMOD_CAPS | KMOD_RSHIFT }));
-			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, KMOD_NUM | KMOD_CAPS | KMOD_SHIFT }));
+			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, SDL_KMOD_CAPS | SDL_KMOD_LSHIFT }));
+			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, SDL_KMOD_CAPS | SDL_KMOD_RSHIFT }));
+			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, SDL_KMOD_CAPS | SDL_KMOD_SHIFT }));
+			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, SDL_KMOD_NUM}));
+			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, SDL_KMOD_NUM | SDL_KMOD_CAPS | SDL_KMOD_LSHIFT }));
+			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, SDL_KMOD_NUM | SDL_KMOD_CAPS | SDL_KMOD_RSHIFT }));
+			Printable_KeyMap.insert(std::pair<char, ScancodeModData>(character, { scancode, SDL_KMOD_NUM | SDL_KMOD_CAPS | SDL_KMOD_SHIFT }));
 		}
 	};
 	
@@ -454,10 +457,12 @@ void VIPR_Emulator::Application::ConstructMenus()
 	EmulatorOptionsMenu.on_right = emulator_options_right;
 	EmulatorOptionsMenu.on_activate = emulator_options_activate;
 	EmulatorOptionsMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Text, GUI::Text { "Emulator Options", 108, 0, GUI::ColorData { 0xC0, 0xC0, 0xC0 }, false } });
-	std::vector<std::string> OutputAudioDeviceList(SDL_GetNumAudioDevices(0));
+	int device_count = 0;
+	SDL_AudioDeviceID *playback_devices = SDL_GetAudioPlaybackDevices(&device_count);
+	std::vector<std::string> OutputAudioDeviceList(device_count);
 	for (size_t i = 0; i < OutputAudioDeviceList.size(); ++i)
 	{
-		OutputAudioDeviceList[i] = SDL_GetAudioDeviceName(i, 0);
+		OutputAudioDeviceList[i] = SDL_GetAudioDeviceName(playback_devices[i]);
 	}
 	EmulatorOptionsMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::MultiChoice, GUI::MultiChoice { "Output Audio Device", 0, 50, main_menu_item_color, main_menu_item_select_color, GUI::ColorData { 0xFF, 0xFF, 0xFF }, 0, std::move(OutputAudioDeviceList), true, false } });
 	EmulatorOptionsMenu.element_list.push_back(GUI::ElementData { GUI::ElementType::Value, GUI::Value { "Main Volume", "", 0, 60, main_menu_item_color, main_menu_item_select_color, GUI::ColorData { 0xFF, 0xFF, 0xFF }, GUI::ValueBaseType::Decimal, 50, 0, 100, 0, false, false, false, nullptr } });

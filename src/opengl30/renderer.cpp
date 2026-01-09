@@ -1,5 +1,6 @@
 #include "renderer.hpp"
 #include "shaders.hpp"
+#include <SDL3/SDL.h>
 #include <fmt/core.h>
 #include <memory>
 #include <bit>
@@ -102,7 +103,7 @@ VIPR_Emulator::Renderer::~Renderer()
 		{
 			glDeleteShader(PrimaryVertexShaderId);
 		}
-		SDL_GL_DeleteContext(MainContext);
+		SDL_GL_DestroyContext(MainContext);
 	}
 }
 

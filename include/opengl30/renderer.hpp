@@ -2,7 +2,7 @@
 #define _RENDERER_HPP_
 
 #include <cstdint>
-#include <SDL.h>
+#include <SDL3/SDL.h>
 #include <GL/glew.h>
 #include <string>
 #include <array>
