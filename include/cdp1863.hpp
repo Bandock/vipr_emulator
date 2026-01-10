@@ -13,7 +13,7 @@ namespace VIPR_Emulator
 				Clock1, Clock2
 			};
 
-			CDP1863(double input_frequency, InputClockType input_clock);
+			CDP1863(double input_frequency = 1.0, InputClockType input_clock = InputClockType::Clock1);
 			~CDP1863();
 
 			inline void SetDivideRate(uint8_t value)

@@ -29,7 +29,8 @@ namespace VIPR_Emulator
 	{
 		VP585_ExpansionKeypadInterface = 0, // Enables using two keypads; turns off VP590
 		VP590_ColorBoard = 1, // Adds color support and enables using two keypads; turns off VP585
-		VP595_SimpleSoundBoard = 2 // Adds support for a variable tone generator; replaces the base tone generator
+		VP595_SimpleSoundBoard = 2, // Adds support for a variable tone generator; replaces the base tone generator
+		VP550_SuperSoundSystem = 3 // Adds support for two variable tone generators with added volume support; replaces the base tone generators and turns off VP595
 	};
 
 	struct MemoryMapData

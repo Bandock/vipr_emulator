@@ -1,6 +1,5 @@
 #include "renderer.hpp"
 #include "shaders.hpp"
-#include <SDL3/SDL.h>
 #include <fmt/core.h>
 #include <memory>
 #include <bit>
