@@ -49,9 +49,9 @@ Current Key Bindings for Keypad 2 (requires VP-585 Expansion Keypad Interface or
 - OpenGL ES 3.0 (This allows it to run on more modern embedded devices and even some systems like the Raspberry Pi 4.  First renderer that was built as the development machine was a Raspberry Pi 4.)
 
 ## Requirements for Building
-- [CMake](https://www.cmake.org/download/) (at least 3.10)
+- [CMake](https://www.cmake.org/download/) (at least 3.26)
 - [fmt](https://github.com/fmtlib/fmt)
 - [libmsbtfont](https://github.com/Bandock/libmsbtfont) (Requires at least 0.2.0, latest release recommended)
-- [SDL3](github.com/libsdl-org/SDL/releases/latest) (Latest stable development versions should work fine)
+- [SDL3](https://github.com/libsdl-org/SDL/releases/latest) (Latest stable development versions should work fine)
 - [GLEW](http://glew.sourceforge.net) (If you're compiling with OpenGL 2.1 and OpenGL 3.0 renderer support)
 - C++ Compiler with C++20 Support
